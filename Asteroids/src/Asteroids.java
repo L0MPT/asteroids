@@ -51,6 +51,9 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	AsteroidPlayer player1;
 	AsteroidPlayer player2;
 
+	int score1 = 0;
+	int score2 = 0;
+
 	static double deltaTime;
 
 	long pastTime = 0;
@@ -105,8 +108,16 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	}
 
 	public void createPlayers() {
-		player1 = new AsteroidPlayer(r.nextInt(width - 20) + 10, r.nextInt(height - 20) + 10, rectWidth, rectHeight, 0);
-		player2 = new AsteroidPlayer(r.nextInt(width - 20) + 10, r.nextInt(height - 20) + 10, rectWidth, rectHeight, 1);
+		player1 = new AsteroidPlayer(r.nextInt(width - 20) + 10,
+				r.nextInt(height - 20) + 10,
+				rectWidth,
+				rectHeight,
+				0);
+		player2 = new AsteroidPlayer(r.nextInt(width - 20) + 10,
+				r.nextInt(height - 20) + 10,
+				rectWidth,
+				rectHeight,
+				1);
 	}
 
 	private void gameLoop() {
@@ -148,23 +159,28 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 				player1.move();
 				player2.move();
-				for (Bullet bullet : player1.bullets) {
+				for (int i = 0; i < player1.bullets.length; i++) {
+					Bullet bullet = player1.bullets[i];
 					if (bullet == null || !player2.alive) {
 						continue;
 					} // stops if null
 					if (bullet.collide(player2.xMin, player2.yMin, player2.xMax - player2.xMin,
 							player2.yMax - player2.yMin)) {
 						player2.die();
-						
+						player1.bullets[i] = null;
+						score1++;
 					}
 				}
-				for (Bullet bullet : player2.bullets) {
+				for (int i = 0; i < player2.bullets.length; i++) {
+					Bullet bullet = player2.bullets[i];
 					if (bullet == null || !player1.alive) {
 						continue;
 					} // stops if null
 					if (bullet.collide(player1.xMin, player1.yMin, player1.xMax - player1.xMin,
 							player1.yMax - player1.yMin)) {
 						player1.die();
+						player2.bullets[i] = null;
+						score2++;
 					}
 				}
 
@@ -187,7 +203,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		Graphics2D g2D = (Graphics2D) g;
 		g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2D.setFont(new Font("Agbalumo", Font.PLAIN, 40));
+		g2D.setFont(new Font("Impact", Font.BOLD, 40));
 		super.paintComponent(g2D);
 		// when calling g.drawImage() we can use "this" for the ImageObserver
 		// because Component implements the ImageObserver interface, and JPanel
@@ -201,7 +217,9 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		drawRot(g2D);
 		drawPoint(g2D);
 
-		// g2D.drawString(String.valueOf(deltaTime), 10, 50);
+		g2D.drawString(String.valueOf(score1), 10, 50);
+		g2D.setColor(Color.green);
+		g2D.drawString(String.valueOf(score2), width - 50, 50);
 
 		player1.display(g2D);
 		player2.display(g2D);
@@ -261,8 +279,10 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	public static boolean lineLine(double x1, double y1, double x2, double y2, double x3, double y3, double x4,
 			double y4) {
 		// calculate the direction of the lines
-		double uA = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
-		double uB = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+		double uA = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3))
+				/ ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
+		double uB = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3))
+				/ ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
 		// angle = atan2((y4-y3)/(x4-x3))
 
 		// if uA and uB are between 0-1, lines are colliding
