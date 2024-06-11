@@ -17,7 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 public class Asteroids extends JPanel implements KeyListener, MouseListener, MouseMotionListener {
-
 	/**
 	 *
 	 */
@@ -55,7 +54,6 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	static double deltaTime;
 
 	long pastTime = 0;
-	
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -114,7 +112,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	private void gameLoop() {
 		while (true) {
 
-//			game close:
+			// game close:
 
 			if (keys[27]) {
 				keys[27] = false;
@@ -157,6 +155,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 					if (bullet.collide(player2.xMin, player2.yMin, player2.xMax - player2.xMin,
 							player2.yMax - player2.yMin)) {
 						player2.die();
+						
 					}
 				}
 				for (Bullet bullet : player2.bullets) {
@@ -202,7 +201,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		drawRot(g2D);
 		drawPoint(g2D);
 
-//		g2D.drawString(String.valueOf(deltaTime), 10, 50);
+		// g2D.drawString(String.valueOf(deltaTime), 10, 50);
 
 		player1.display(g2D);
 		player2.display(g2D);
@@ -226,7 +225,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		setRumble(getRumblemax());
 	}
 
-//	Audio
+	// Audio
 	public static void playThrust() {
 		SoundPlayer.playSound("thrust4.wav", true);
 	}
@@ -245,10 +244,8 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		}
 	}
 
-	
-
-// Draws
-//	Not Called
+	// Draws
+	// Not Called
 	public void drawOriginal(Graphics2D g) {
 		int[] x1 = { x - rectWidth / 2, x + rectWidth / 2, x };
 		int[] y1 = { y - rectHeight / 3, y - rectHeight / 3, y + rectHeight * 2 / 3 };

@@ -63,22 +63,22 @@ class AsteroidPlayer {
 		}
 
 		// sets color:
-//		double fuelPercent = (fuel / fuelMax);
+		// double fuelPercent = (fuel / fuelMax);
 		switch (type) {
-		case 0: {
-			float[] hsb = Color.RGBtoHSB(0, 0, 255, null);
-			g.setColor(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
-			break;
-		}
+			case 0: {
+				float[] hsb = Color.RGBtoHSB(0, 0, 255, null);
+				g.setColor(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
+				break;
+			}
 
-		case 1: {
-			float[] hsb = Color.RGBtoHSB(0, 255, 0, null);
-			g.setColor(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
-			break;
-		}
+			case 1: {
+				float[] hsb = Color.RGBtoHSB(0, 255, 0, null);
+				g.setColor(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
+				break;
+			}
 
-		default:
-			break;
+			default:
+				break;
 		}
 
 		int[] x1 = { (int) (this.x - this.width / 2), (int) (this.x + this.width / 2), (int) this.x };
@@ -150,8 +150,9 @@ class AsteroidPlayer {
 			}
 		}
 
-//		fuel
-		this.drawFuel(g);
+		// fuel
+		this.drawFuelBack(g);
+		this.drawFuelFront(g);
 
 		// draws particles
 
@@ -212,13 +213,7 @@ class AsteroidPlayer {
 		}
 	}
 
-	public void drawFuel(Graphics2D g) {
-
-		double xPos0 = this.x - this.width / 2;
-		double xPos1 = this.x + this.width / 2;
-		double yPos0 = this.y - this.height * (16 / 24.0);
-		double yPos1 = this.y - this.height * (19 / 24.0);
-
+	private int[][] translatePoints(double xPos0, double xPos1, double yPos0, double yPos1) {
 		double[] x0 = { xPos0, xPos1, xPos1, xPos0 };
 		double[] y0 = { yPos0, yPos0, yPos1, yPos1 };
 		double[] x1 = new double[4];
@@ -244,12 +239,50 @@ class AsteroidPlayer {
 		int[] x2 = new int[4];
 		int[] y2 = new int[4];
 
-//		g.setColor(new Color(50, 50, 50));
 		for (int i = 0; i < x1.length; i++) {
 			x2[i] = (int) x1[i];
 			y2[i] = (int) y1[i];
 		}
+
+		// oh boy do I miss my touples
+		int[][] points = { x2, y2 };
+
+		return points;
+	}
+
+	public void drawFuelBack(Graphics2D g) {
+
+		double xPos0 = this.x - this.width / 2;
+		double xPos1 = this.x + this.width / 2;
+		double yPos0 = this.y - this.height * (16 / 24.0);
+		double yPos1 = this.y - this.height * (19 / 24.0);
+
+		int[][] points = translatePoints(xPos0, xPos1, yPos0, yPos1);
+
+		int[] x2 = points[0];
+		int[] y2 = points[1];
+
+		g.setColor(new Color(50, 50, 50));
+
 		g.drawPolygon(x2, y2, 4);
+
+	}
+
+	public void drawFuelFront(Graphics2D g) {
+
+		double xPos0 = this.x - (this.width / 2) * this.fuel / this.fuelMax;
+		double xPos1 = this.x + (this.width / 2) * this.fuel / this.fuelMax;
+		double yPos0 = this.y - this.height * (16 / 24.0);
+		double yPos1 = this.y - this.height * (19 / 24.0);
+
+		int[][] points = translatePoints(xPos0, xPos1, yPos0, yPos1);
+
+		int[] x2 = points[0];
+		int[] y2 = points[1];
+
+		g.setColor(new Color(200, 50, 50));
+
+		g.fillPolygon(x2, y2, 4);
 
 	}
 
@@ -347,53 +380,53 @@ class AsteroidPlayer {
 		}
 
 		switch (type) {
-		// Down Arrow
-		case (0): {
-			if (Asteroids.keys[40] && ammo > 0) {
-				// Could adjust such that it shoots from the tip of the triangle
-				shoot();
-				Asteroids.keys[40] = false;
-			}
+			// Down Arrow
+			case (0): {
+				if (Asteroids.keys[40] && ammo > 0) {
+					// Could adjust such that it shoots from the tip of the triangle
+					shoot();
+					Asteroids.keys[40] = false;
+				}
 
-			if (Asteroids.keys[38] && this.fuel > 0 && this.propulsed) {
-				this.yv += speed * Math.sin((this.rotation + 90) * Math.PI / 180);
-				this.xv += speed * Math.cos((this.rotation + 90) * Math.PI / 180);
-				this.spawnParticles();
+				if (Asteroids.keys[38] && this.fuel > 0 && this.propulsed) {
+					this.yv += speed * Math.sin((this.rotation + 90) * Math.PI / 180);
+					this.xv += speed * Math.cos((this.rotation + 90) * Math.PI / 180);
+					this.spawnParticles();
+				}
+				// if (Asteroids.keys[40]) {
+				// this.yv -= speed;
+				// }
+				if (Asteroids.keys[39]) {
+					this.rotV += speed;
+				}
+				if (Asteroids.keys[37]) {
+					this.rotV -= speed;
+				}
+				break;
 			}
-			// if (Asteroids.keys[40]) {
-			// this.yv -= speed;
-			// }
-			if (Asteroids.keys[39]) {
-				this.rotV += speed;
-			}
-			if (Asteroids.keys[37]) {
-				this.rotV -= speed;
-			}
-			break;
-		}
-		case (1): {
-			if (Asteroids.keys[83] && ammo > 0) {
-				// Could adjust such that it shoots from the tip of the triangle
-				shoot();
-				Asteroids.keys[83] = false;
-			}
+			case (1): {
+				if (Asteroids.keys[83] && ammo > 0) {
+					// Could adjust such that it shoots from the tip of the triangle
+					shoot();
+					Asteroids.keys[83] = false;
+				}
 
-			if (Asteroids.keys[87] && fuel > 0 && this.propulsed) {
-				this.yv += speed * Math.sin((this.rotation + 90) * Math.PI / 180);
-				this.xv += speed * Math.cos((this.rotation + 90) * Math.PI / 180);
-				this.spawnParticles();
+				if (Asteroids.keys[87] && fuel > 0 && this.propulsed) {
+					this.yv += speed * Math.sin((this.rotation + 90) * Math.PI / 180);
+					this.xv += speed * Math.cos((this.rotation + 90) * Math.PI / 180);
+					this.spawnParticles();
+				}
+				// if (Asteroids.keys[40]) {
+				// this.yv -= speed;
+				// }
+				if (Asteroids.keys[68]) {
+					this.rotV += speed;
+				}
+				if (Asteroids.keys[65]) {
+					this.rotV -= speed;
+				}
+				break;
 			}
-			// if (Asteroids.keys[40]) {
-			// this.yv -= speed;
-			// }
-			if (Asteroids.keys[68]) {
-				this.rotV += speed;
-			}
-			if (Asteroids.keys[65]) {
-				this.rotV -= speed;
-			}
-			break;
-		}
 		}
 		this.x += this.xv;
 		this.y += this.yv;
