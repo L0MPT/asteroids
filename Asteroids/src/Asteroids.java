@@ -245,20 +245,20 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	// Audio
 	public static void playThrust() {
-		SoundPlayer.playSound("thrust4.wav", true);
+		SoundPlayer.playSound("Asteroids/thrust4.wav", true);
 	}
 
 	public static void playShoot() {
-		SoundPlayer.playSound("laserShoot.wav", false);
+		SoundPlayer.playSound("Asteroids/laserShoot.wav", false);
 	}
 
 	public static void playExplode() {
-		SoundPlayer.playSound("explosion.wav", false);
+		SoundPlayer.playSound("Asteroids/explosion.wav", false);
 	}
 
 	public static void preloadSounds() {
 		for (int i = 0; i < 6; i++) {
-			SoundPlayer.loadStoppedSound("thrust4.wav");
+			SoundPlayer.loadStoppedSound("Asteroids/thrust4.wav");
 		}
 	}
 
@@ -321,7 +321,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	// mouse code
 	public void mouseClicked(java.awt.event.MouseEvent mouse) {
 
-		repaint();
+		// repaint();
 	}
 
 	public void mouseEntered(java.awt.event.MouseEvent mouse) {

@@ -100,8 +100,6 @@ public class SoundPlayer {
 			if (!sound.clip.isRunning()) {
 				sound.play(decay);
 			} else {
-				System.out.println("E");
-				System.out.println(sounds.size());
 				loadPlay(path, decay);
 			}
 		} else {

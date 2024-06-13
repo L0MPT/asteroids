@@ -1,5 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 class AsteroidPlayer {
@@ -11,7 +13,7 @@ class AsteroidPlayer {
 	int type;
 
 	final int ammoSize = 7;
-	int ammoMax = 3;
+	int ammoMax = 5;
 	int ammo = ammoMax;
 
 	Random rand = new Random();
@@ -178,29 +180,48 @@ class AsteroidPlayer {
 		// copies the code for drawing originally because it's basically the same
 		// ammoSize / 2 is multiplied by the angle because ovals are drawn stupidly from
 		// the top left corner.
-		// I am so sorry for anyone who needs to fix this.
-		int[] x1 = { (int) (this.x - this.width / 2), (int) this.x, (int) (this.x + this.width / 2) };
+		ArrayList<Double> x0 = new ArrayList<>();
+		double difference = this.width / 2;
+		if (this.ammoMax % 2 == 0) {
+			for (int i = 1; i <= this.ammoMax / 2; i++) {
+				x0.add(this.x + ((i - 0.5) * difference));
+				x0.add(this.x - ((i - 0.5) * difference));
+			}
+		} else {
+			x0.add(this.x);
+			for (int i = 1; i <= this.ammoMax / 2; i++) {
+				x0.add(this.x + (i * difference));
+				x0.add(this.x - (i * difference));
+			}
+		}
 
-		int[] y1 = { (int) (this.y - this.height * 0.45), (int) (this.y - this.height * 0.45),
-				(int) (this.y - this.height * 0.45) };
-		int[] x2 = new int[3];
-		int[] y2 = new int[3];
+		Collections.sort(x0);
+
+		ArrayList<Double> y0 = new ArrayList<>();
+		double y = (this.y - this.height * 0.45);
+
+		for (int i = 0; i < this.ammoMax; i++) {
+			y0.add(y);
+		}
+
+		int[] x2 = new int[x0.size()];
+		int[] y2 = new int[y0.size()];
 
 		// first adjusts the values of the original
-		for (int i = 0; i < x1.length; i++) {
-			x1[i] += -this.x;
-			y1[i] += -this.y;
+		for (int i = 0; i < x0.size(); i++) {
+			x0.set(i, x0.get(i) - this.x);
+			y0.set(i, y0.get(i) - this.y);
 		}
 
 		// Rotates I made these the same for neatness
-		for (int i = 0; i < x1.length; i++) {
+		for (int i = 0; i < x0.size(); i++) {
 			// x2 starts as 0
-			x2[i] = (int) (x1[i] * Math.cos(this.rotation * Math.PI / 180)
-					- (y1[i] * Math.sin(this.rotation * Math.PI / 180)));
+			x2[i] = (int) (x0.get(i) * Math.cos(this.rotation * Math.PI / 180)
+					- (y0.get(i) * Math.sin(this.rotation * Math.PI / 180)));
 			x2[i] += this.x - this.ammoSize / 2;
 			// y2 starts at 0
-			y2[i] = (int) (y1[i] * Math.cos(this.rotation * Math.PI / 180)
-					+ x1[i] * Math.sin(this.rotation * Math.PI / 180));
+			y2[i] = (int) (y0.get(i) * Math.cos(this.rotation * Math.PI / 180)
+					+ x0.get(i) * Math.sin(this.rotation * Math.PI / 180));
 			y2[i] += this.y - this.ammoSize / 2;
 		}
 
@@ -340,7 +361,7 @@ class AsteroidPlayer {
 		double bX = this.x - ((this.height * Math.cos((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
 		double bY = this.y - ((this.height * Math.sin((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
 
-		bullets[3 - ammo] = new Bullet(bX, bY, 10, bulletWidth, this.rotation + 90);
+		bullets[ammoMax - ammo] = new Bullet(bX, bY, 10, bulletWidth, this.rotation + 90);
 		ammo -= 1;
 	}
 
