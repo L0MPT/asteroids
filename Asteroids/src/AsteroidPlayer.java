@@ -13,7 +13,7 @@ class AsteroidPlayer {
 	int type;
 
 	final int ammoSize = 7;
-	int ammoMax = 5;
+	int ammoMax = 3;
 	int ammo = ammoMax;
 
 	Random rand = new Random();
@@ -37,6 +37,8 @@ class AsteroidPlayer {
 	shipParticle[] particles = new shipParticle[200];
 
 	DeathParticle[] deathParticles = new DeathParticle[50];
+
+	shootParticle[] shootParticles = new shootParticle[150];
 
 	int xMin, xMax, yMin, yMax;
 
@@ -161,6 +163,11 @@ class AsteroidPlayer {
 		for (int i = 0; i < particles.length; i++) {
 			if (particles[i] != null) {
 				particles[i].display(g);
+			}
+		}
+		for (int i = 0; i < shootParticles.length; i++) {
+			if (shootParticles[i] != null) {
+				shootParticles[i].display(g);
 			}
 		}
 	}
@@ -363,6 +370,25 @@ class AsteroidPlayer {
 
 		bullets[ammoMax - ammo] = new Bullet(bX, bY, 10, bulletWidth, this.rotation + 90);
 		ammo -= 1;
+		int spawned = 0;
+		for (int i = 0; i < shootParticles.length; i++) {
+			if (shootParticles[i] == null) {
+				double pX = bX;
+				double pY = bY;
+				double pXv = this.xv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
+				double pYv = this.yv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
+				int pSize = 20;
+				int pTime = 50;
+				int pId = i;
+				Color pColor = new Color(200 + rand.nextInt(55), 200 + rand.nextInt(55), 200 + rand.nextInt(55));
+
+				shootParticles[i] = new shootParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
+				spawned++;
+				if (spawned > 10) {
+					break;
+				}
+			}
+		}
 	}
 
 	public void move() {
@@ -397,6 +423,11 @@ class AsteroidPlayer {
 		for (int i = 0; i < particles.length; i++) {
 			if (particles[i] != null) {
 				particles[i].move();
+			}
+		}
+		for (int i = 0; i < shootParticles.length; i++) {
+			if (shootParticles[i] != null) {
+				shootParticles[i].move();
 			}
 		}
 
