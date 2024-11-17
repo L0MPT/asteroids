@@ -1,7 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
 
-public class shootParticle {
+public class ShootParticle {
     double x;
     double y;
     double xv;
@@ -13,7 +13,7 @@ public class shootParticle {
     Color color;
     AsteroidPlayer parentPlayer;
 
-    shootParticle(double x, double y, double xv, double yv, int size, int time, int id, Color color,
+    ShootParticle(double x, double y, double xv, double yv, int size, int time, int id, Color color,
             AsteroidPlayer parentPlayer) {
         this.x = x;
         this.y = y;

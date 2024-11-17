@@ -34,11 +34,11 @@ class AsteroidPlayer {
 
 	Bullet[] bullets = new Bullet[ammo];
 
-	shipParticle[] particles = new shipParticle[200];
+	ShipParticle[] particles = new ShipParticle[200];
 
 	DeathParticle[] deathParticles = new DeathParticle[50];
 
-	shootParticle[] shootParticles = new shootParticle[150];
+	ShootParticle[] shootParticles = new ShootParticle[150];
 
 	int xMin, xMax, yMin, yMax;
 
@@ -331,7 +331,7 @@ class AsteroidPlayer {
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), rand.nextInt(60), rand.nextInt(60));
 
-				particles[i] = new shipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
+				particles[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
 				break;
 			}
 		}
@@ -382,7 +382,7 @@ class AsteroidPlayer {
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), 200 + rand.nextInt(55), 200 + rand.nextInt(55));
 
-				shootParticles[i] = new shootParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
+				shootParticles[i] = new ShootParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
 				spawned++;
 				if (spawned > 10) {
 					break;
