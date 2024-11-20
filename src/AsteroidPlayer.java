@@ -85,9 +85,9 @@ class AsteroidPlayer {
 				break;
 		}
 
-		int[] x1 = { (int) (this.x - this.width / 2), (int) (this.x + this.width / 2), (int) this.x };
-		int[] y1 = { (int) (this.y - this.height / 3), (int) (this.y - this.height / 3),
-				(int) (this.y + this.height * 2 / 3) };
+		int[] x1 = { (int) Math.round(this.x - this.width / 2), (int) Math.round(this.x + this.width / 2), (int) Math.round(this.x) };
+		int[] y1 = { (int) Math.round(this.y - this.height / 3), (int) Math.round(this.y - this.height / 3),
+				(int) Math.round(this.y + this.height * 2 / 3) };
 		int[] x2 = new int[3];
 		int[] y2 = new int[3];
 
@@ -100,12 +100,12 @@ class AsteroidPlayer {
 		// Then changes it for
 		for (int i = 0; i < x1.length; i++) {
 			// x2 starts as 0
-			x2[i] = (int) (x1[i] * Math.cos(this.rotation * Math.PI / 180)
-					- (y1[i] * Math.sin(this.rotation * Math.PI / 180)));
+			x2[i] = (int) Math.round(x1[i] * (Math.cos(this.rotation * Math.PI / 180))
+					- (y1[i] * (Math.sin(this.rotation * Math.PI / 180))));
 			x2[i] += this.x;
 			// y2 starts at 0
-			y2[i] = (int) (y1[i] * Math.cos(this.rotation * Math.PI / 180)
-					+ x1[i] * Math.sin(this.rotation * Math.PI / 180));
+			y2[i] = (int) Math.round(y1[i] * (Math.cos(this.rotation * Math.PI / 180))
+					+ x1[i] * (Math.sin(this.rotation * Math.PI / 180)));
 			y2[i] += this.y;
 		}
 
@@ -223,11 +223,11 @@ class AsteroidPlayer {
 		// Rotates I made these the same for neatness
 		for (int i = 0; i < x0.size(); i++) {
 			// x2 starts as 0
-			x2[i] = (int) (x0.get(i) * Math.cos(this.rotation * Math.PI / 180)
+			x2[i] = (int) Math.round(x0.get(i) * Math.cos(this.rotation * Math.PI / 180)
 					- (y0.get(i) * Math.sin(this.rotation * Math.PI / 180)));
 			x2[i] += this.x - this.ammoSize / 2;
 			// y2 starts at 0
-			y2[i] = (int) (y0.get(i) * Math.cos(this.rotation * Math.PI / 180)
+			y2[i] = (int) Math.round(y0.get(i) * Math.cos(this.rotation * Math.PI / 180)
 					+ x0.get(i) * Math.sin(this.rotation * Math.PI / 180));
 			y2[i] += this.y - this.ammoSize / 2;
 		}
