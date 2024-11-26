@@ -30,6 +30,9 @@ class AsteroidPlayer {
 	double rotation;
 	double rotV;
 
+	double rotSpeed = 0.25;
+	double rotDecel = 0.95;
+
 	double timeToNewBullet = 0;
 	double fuel = 4000;
 	double fuelMax = 4000;
@@ -91,14 +94,12 @@ class AsteroidPlayer {
 		// double fuelPercent = (fuel / fuelMax);
 		switch (type) {
 			case 0: {
-				float[] hsb = Color.RGBtoHSB(0, 0, 255, null);
-				g.setPaint(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
+				g.setPaint(Asteroids.p1Color);
 				break;
 			}
 
 			case 1: {
-				float[] hsb = Color.RGBtoHSB(0, 255, 0, null);
-				g.setPaint(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
+				g.setPaint(Asteroids.p2Color);
 				break;
 			}
 
@@ -292,7 +293,8 @@ class AsteroidPlayer {
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), 200 + rand.nextInt(55), 200 + rand.nextInt(55));
 
-				shipShootParticle[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this.shipShootParticle);
+				shipShootParticle[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor,
+						this.shipShootParticle);
 				spawned++;
 				if (spawned > 10) {
 					break;
@@ -359,10 +361,10 @@ class AsteroidPlayer {
 				// yv -= speed;
 				// }
 				if (Asteroids.keys[39]) {
-					rotV += speed;
+					rotV += rotSpeed;
 				}
 				if (Asteroids.keys[37]) {
-					rotV -= speed;
+					rotV -= rotSpeed;
 				}
 				break;
 			}
@@ -382,10 +384,10 @@ class AsteroidPlayer {
 				// yv -= speed;
 				// }
 				if (Asteroids.keys[68]) {
-					rotV += speed;
+					rotV += rotSpeed;
 				}
 				if (Asteroids.keys[65]) {
-					rotV -= speed;
+					rotV -= rotSpeed;
 				}
 				break;
 			}
@@ -393,7 +395,7 @@ class AsteroidPlayer {
 		x += xv;
 		y += yv;
 		rotation += rotV;
-		rotV *= 0.98;
+		rotV *= rotDecel;
 		xv *= 0.99;
 		yv *= 0.99;
 

@@ -91,16 +91,14 @@ public class SoundPlayer {
 
 	public static void playSound(String path, Boolean decay) {
 		// the next code is for playing sound files (wav format)
-		if (decay && Asteroids.getRumble() == 0)
-			return;
+		// if (decay && Asteroids.getRumble() == 0)
+		// return;
 
 		if (searchSounds(path)) {
-			int soundIndex = getSoundIndex(path);
+			int soundIndex = getSoundIndexStopped(path);
 			Sound sound = sounds.get(soundIndex);
 			if (!sound.clip.isRunning()) {
 				sound.play(decay);
-			} else {
-				loadPlay(path, decay);
 			}
 		} else {
 			loadPlay(path, decay);
@@ -138,18 +136,24 @@ class Sound {
 	Sound(Clip clip, String path) {
 		this.clip = clip;
 		this.path = path;
-	}
 
-	void play(boolean decay) {
-		clip.start();
-		if (decay)
-			SoundPlayer.setVolume(clip, (float) (Asteroids.getRumble() / Asteroids.getRumblemax()));
-		clip.start();
 		clip.addLineListener(new LineListener() {
 			public void update(LineEvent myLineEvent) {
 				if (myLineEvent.getType() == LineEvent.Type.STOP)
 					clip.setFramePosition(0);
 			}
 		});
+
+	}
+
+	void play(boolean decay) {
+		if (decay) {
+			SoundPlayer.setVolume(clip, (float) (Asteroids.getRumble() / Asteroids.getRumblemax()));
+		}
+		clip.start();
+	}
+
+	public String toString() {
+		return path;
 	}
 }

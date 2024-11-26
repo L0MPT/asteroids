@@ -25,7 +25,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	private final int targetDelay = 16; // 1000/60 or ~60 fps
 
 	private static double rumble = 0;
-	private final static double rumbleMax = 5;
+	private final static double rumbleMax = 4;
 
 	double timeSincePlay = 0;
 
@@ -58,6 +58,9 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	long pastTime = 0;
 
+	public static Color p1Color = new Color(60, 60, 255);
+	public static Color p2Color = new Color(60, 255, 60);
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		SwingUtilities.invokeLater(new Runnable() {
@@ -85,6 +88,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		// don't allow the user to resize the window
 		window.setResizable(false);
 		window.setUndecorated(true);
+		window.getGraphicsConfiguration().getDevice().setFullScreenWindow(window);
 
 		// fit the window size around the components (just our jpanel).
 		// pack() should be called after setResizable() to avoid issues on some
@@ -202,23 +206,27 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		g2D.setPaint(getBackground());
 		g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		g2D.setFont(new Font("Impact", Font.BOLD, 40));
+		g2D.setFont(new Font("Impact", Font.ITALIC, 40));
 		super.paintComponent(g2D);
 		// when calling g.drawImage() we can use "this" for the ImageObserver
 		// because Component implements the ImageObserver interface, and JPanel
 		// extends from Component. So "this" Board instance, as a Component, can
 		// react to imageUpdate() events triggered by g.drawImage()
-		g2D.setColor(Color.blue);
+		g2D.setColor(p1Color);
 
+
+		// apply rumble
 		g2D.translate(r.nextDouble() * getRumble(), r.nextDouble() * getRumble());
-		// drawOriginal(g2D);
+
 
 		drawRot(g2D);
 		drawPoint(g2D);
 
 		g2D.drawString(String.valueOf(score1), 10, 50);
-		g2D.setColor(Color.green);
+		g2D.setColor(p2Color);
 		g2D.drawString(String.valueOf(score2), width - 50, 50);
+
+		// g2D.drawString(Double.toString(deltaTime), 80, 80);
 
 		player1.display(g2D);
 		player2.display(g2D);
@@ -259,6 +267,8 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		for (int i = 0; i < 6; i++) {
 			SoundPlayer.loadStoppedSound("sounds/thrust4.wav");
 		}
+		SoundPlayer.loadStoppedSound("sounds/laserShoot.wav");
+		SoundPlayer.loadStoppedSound("sounds/explosion.wav");
 	}
 
 	// Draws
