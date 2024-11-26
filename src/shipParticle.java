@@ -28,7 +28,6 @@ class ShipParticle {
 		this.timeOriginal = time;
 		this.id = id;
 		this.color = color;
-		// TODO: This is meant to require a referance to the array of particles so that it can delete itself
 		this.arrayReference = arrayReference;
 	}
 
