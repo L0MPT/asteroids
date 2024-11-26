@@ -1,19 +1,25 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 
 class DeathParticle {
 	double x;
 	double y;
 	double xv;
 	double yv;
-	int size;
+	float size;
 	int time;
 	int timeOriginal;
 	int id;
 	Color color;
 	AsteroidPlayer parentPlayer;
 
-	DeathParticle(double x, double y, double xv, double yv, int size, int time, int id, Color color,
+	static AffineTransform deathTransform = new AffineTransform();
+	static Ellipse2D.Double circle = new Ellipse2D.Double(-0.5, -0.5, 1, 1);
+
+
+	DeathParticle(double x, double y, double xv, double yv, float size, int time, int id, Color color,
 			AsteroidPlayer parentPlayer) {
 		this.x = x;
 		this.y = y;
@@ -32,24 +38,15 @@ class DeathParticle {
 				(int) Math.max(Math.min(255 * (this.time / (double) this.timeOriginal), 255), 0));
 		g.setColor(this.color);
 
-		int trueSize = 5 + (int) (this.size * ((this.timeOriginal - this.time) / (double) this.timeOriginal));
-		g.fillOval((int) this.x - trueSize / 2, (int) this.y - trueSize / 2, trueSize, trueSize);
+		float trueSize = 5 + size * (timeOriginal - time) / this.timeOriginal;
 
-		// Looping screen
-		// I don't think I need any of the other ones since this is aligned to the top
-		// left point.
-		boolean rightOver = this.x + trueSize > Asteroids.width;
-		boolean leftOver = this.y + trueSize > Asteroids.height;
-		if (rightOver) {
-			g.fillOval((int) this.x - trueSize / 2 - Asteroids.width, (int) this.y - trueSize / 2, trueSize, trueSize);
-		}
-		if (leftOver) {
-			g.fillOval((int) this.x - trueSize / 2, (int) this.y - trueSize / 2 - Asteroids.height, trueSize, trueSize);
-		}
-		if (leftOver && rightOver) {
-			g.fillOval((int) this.x - trueSize / 2 - Asteroids.width, (int) this.y - trueSize / 2 - Asteroids.height,
-					trueSize, trueSize);
-		}
+		deathTransform.setToIdentity();
+		deathTransform.translate(x, y);
+
+		deathTransform.scale(trueSize, trueSize);
+
+		g.fill(deathTransform.createTransformedShape(circle));
+
 	}
 
 	public void move() {

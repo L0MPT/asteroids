@@ -164,8 +164,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 					if (bullet == null || !player2.alive) {
 						continue;
 					} // stops if null
-					if (bullet.collide(player2.xMin, player2.yMin, player2.xMax - player2.xMin,
-							player2.yMax - player2.yMin)) {
+					if (bullet.collide(player2.boundsRect)) {
 						player2.die();
 						player1.bullets[i] = null;
 						score1++;
@@ -176,8 +175,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 					if (bullet == null || !player1.alive) {
 						continue;
 					} // stops if null
-					if (bullet.collide(player1.xMin, player1.yMin, player1.xMax - player1.xMin,
-							player1.yMax - player1.yMin)) {
+					if (bullet.collide(player1.boundsRect)) {
 						player1.die();
 						player2.bullets[i] = null;
 						score2++;
@@ -201,6 +199,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	@Override
 	public void paintComponent(Graphics g) {
 		Graphics2D g2D = (Graphics2D) g;
+		g2D.setPaint(getBackground());
 		g2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		g2D.setFont(new Font("Impact", Font.BOLD, 40));

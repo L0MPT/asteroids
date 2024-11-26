@@ -1,7 +1,13 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Path2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Random;
 
 class AsteroidPlayer {
@@ -38,7 +44,13 @@ class AsteroidPlayer {
 
 	DeathParticle[] deathParticles = new DeathParticle[50];
 
-	ShootParticle[] shootParticles = new ShootParticle[150];
+	ShipParticle[] shipShootParticle = new ShipParticle[150];
+
+	Path2D.Double ship = new Path2D.Double();
+
+	AffineTransform objectTransform = new AffineTransform();
+
+	public Rectangle2D boundsRect;
 
 	int xMin, xMax, yMin, yMax;
 
@@ -53,6 +65,15 @@ class AsteroidPlayer {
 		xMax = (int) this.x;
 		yMin = (int) this.y;
 		yMax = (int) this.y;
+
+		createShip();
+	}
+
+	private void createShip() {
+		ship.moveTo(-1 * this.width / 2, -1 * this.height / 3);
+		ship.lineTo(this.width / 2, -1 * this.height / 3);
+		ship.lineTo(0, this.height * 2 / 3);
+		ship.closePath();
 	}
 
 	public void display(Graphics2D g) {
@@ -71,13 +92,13 @@ class AsteroidPlayer {
 		switch (type) {
 			case 0: {
 				float[] hsb = Color.RGBtoHSB(0, 0, 255, null);
-				g.setColor(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
+				g.setPaint(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
 				break;
 			}
 
 			case 1: {
 				float[] hsb = Color.RGBtoHSB(0, 255, 0, null);
-				g.setColor(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
+				g.setPaint(new Color(Color.HSBtoRGB(hsb[0], (float) (hsb[1]), (float) (hsb[2]))));
 				break;
 			}
 
@@ -85,67 +106,28 @@ class AsteroidPlayer {
 				break;
 		}
 
-		int[] x1 = { (int) Math.round(this.x - this.width / 2), (int) Math.round(this.x + this.width / 2), (int) Math.round(this.x) };
-		int[] y1 = { (int) Math.round(this.y - this.height / 3), (int) Math.round(this.y - this.height / 3),
-				(int) Math.round(this.y + this.height * 2 / 3) };
-		int[] x2 = new int[3];
-		int[] y2 = new int[3];
+		AffineTransform shipTransformation = new AffineTransform();
 
-		// first adjusts the values of the original
-		for (int i = 0; i < x1.length; i++) {
-			x1[i] += -this.x;
-			y1[i] += -this.y;
-		}
-
-		// Then changes it for
-		for (int i = 0; i < x1.length; i++) {
-			// x2 starts as 0
-			x2[i] = (int) Math.round(x1[i] * (Math.cos(this.rotation * Math.PI / 180))
-					- (y1[i] * (Math.sin(this.rotation * Math.PI / 180))));
-			x2[i] += this.x;
-			// y2 starts at 0
-			y2[i] = (int) Math.round(y1[i] * (Math.cos(this.rotation * Math.PI / 180))
-					+ x1[i] * (Math.sin(this.rotation * Math.PI / 180)));
-			y2[i] += this.y;
-		}
-
-		g.fillPolygon(x2, y2, 3);
+		shipTransformation.translate(x, y);
+		shipTransformation.rotate(Math.toRadians(rotation));
 
 		// bounding box:
-		xMin = x2[0];
-		xMax = x2[0];
-		yMin = y2[0];
-		yMax = y2[0];
-		for (int i = 1; i < x2.length; i++) {
-			if (x2[i] < xMin) {
-				xMin = x2[i];
-			}
-			if (x2[i] > xMax) {
-				xMax = x2[i];
-			}
-			if (y2[i] < yMin) {
-				yMin = y2[i];
-			}
-			if (y2[i] > yMax) {
-				yMax = y2[i];
+		boundsRect = ship.createTransformedShape(shipTransformation).getBounds2D();
+		// g.draw(boundsRect);
+
+		// draws the ship 9 times so overflow works
+		for (byte i = -1; i <= 1; i++) {
+			for (byte j = -1; j <= 1; j++) {
+				shipTransformation.setToIdentity();
+				shipTransformation.translate(x + i * Asteroids.width, y + j * Asteroids.height);
+				shipTransformation.rotate(Math.toRadians(rotation));
+				g.fill(ship.createTransformedShape(shipTransformation));
 			}
 		}
-
-		// g.drawRect(xMin, yMin, xMax - xMin, yMax - yMin);
-
-		// these functions modify x2 so these are deletas
-		repeatDraw(x2, y2, g, 1, 1);
-		repeatDraw(x2, y2, g, 0, -1);
-		repeatDraw(x2, y2, g, 0, -1);
-		repeatDraw(x2, y2, g, -1, 0);
-		repeatDraw(x2, y2, g, -1, 0);
-		repeatDraw(x2, y2, g, 0, 1);
-		repeatDraw(x2, y2, g, 0, 1);
-		repeatDraw(x2, y2, g, 1, 0);
 
 		g.setColor(Color.gray);
 		// Ammo Counter
-		this.drawAmmo(g);
+		drawAmmo(g);
 
 		// draws bullets
 		for (int i = 0; i < bullets.length; i++) {
@@ -155,8 +137,7 @@ class AsteroidPlayer {
 		}
 
 		// fuel
-		this.drawFuelBack(g);
-		this.drawFuelFront(g);
+		drawFuel(g);
 
 		// draws particles
 
@@ -165,152 +146,81 @@ class AsteroidPlayer {
 				particles[i].display(g);
 			}
 		}
-		for (int i = 0; i < shootParticles.length; i++) {
-			if (shootParticles[i] != null) {
-				shootParticles[i].display(g);
+		for (int i = 0; i < shipShootParticle.length; i++) {
+			if (shipShootParticle[i] != null) {
+				shipShootParticle[i].display(g);
 			}
 		}
-	}
-
-	public void repeatDraw(int[] x2, int[] y2, Graphics2D g, int widthMult, int heightMult) {
-		// overflow:
-		// to properly make position overflow work, i have to make 8 copies of the
-		// object. Start at top left and move clockwise
-		for (int i = 0; i < x2.length; i++) {
-			x2[i] += Asteroids.width * widthMult;
-			y2[i] += Asteroids.height * heightMult;
-		}
-		g.fillPolygon(x2, y2, 3);
 	}
 
 	public void drawAmmo(Graphics2D g) {
 		// copies the code for drawing originally because it's basically the same
 		// ammoSize / 2 is multiplied by the angle because ovals are drawn stupidly from
 		// the top left corner.
-		ArrayList<Double> x0 = new ArrayList<>();
+
+		ArrayList<Ellipse2D> circles = new ArrayList<Ellipse2D>();
+
 		double difference = this.width / 2;
+		double yOffset = -this.height * 0.45;
 		if (this.ammoMax % 2 == 0) {
-			for (int i = 1; i <= this.ammoMax / 2; i++) {
-				x0.add(this.x + ((i - 0.5) * difference));
-				x0.add(this.x - ((i - 0.5) * difference));
+			for (int i = 1; i <= ammoMax / 2; i++) {
+				circles.add(new Ellipse2D.Double((i - 0.5) * difference, yOffset, ammoSize, ammoSize));
+				circles.add(new Ellipse2D.Double(-1 * (i - 0.5) * difference, yOffset, ammoSize, ammoSize));
 			}
 		} else {
-			x0.add(this.x);
+			circles.add(new Ellipse2D.Double(0, yOffset, ammoSize, ammoSize));
 			for (int i = 1; i <= this.ammoMax / 2; i++) {
-				x0.add(this.x + (i * difference));
-				x0.add(this.x - (i * difference));
+				circles.add(new Ellipse2D.Double(i * difference, yOffset, ammoSize, ammoSize));
+				circles.add(new Ellipse2D.Double(-1 * i * difference, yOffset, ammoSize, ammoSize));
 			}
 		}
 
-		Collections.sort(x0);
+		AffineTransform bulletTransform = new AffineTransform();
 
-		ArrayList<Double> y0 = new ArrayList<>();
-		double y = (this.y - this.height * 0.45);
+		for (int i = 0; i < circles.size(); i++) {
+			bulletTransform.setToIdentity();
+			bulletTransform.translate(x, y);
+			bulletTransform.rotate(Math.toRadians(rotation));
 
-		for (int i = 0; i < this.ammoMax; i++) {
-			y0.add(y);
-		}
-
-		int[] x2 = new int[x0.size()];
-		int[] y2 = new int[y0.size()];
-
-		// first adjusts the values of the original
-		for (int i = 0; i < x0.size(); i++) {
-			x0.set(i, x0.get(i) - this.x);
-			y0.set(i, y0.get(i) - this.y);
-		}
-
-		// Rotates I made these the same for neatness
-		for (int i = 0; i < x0.size(); i++) {
-			// x2 starts as 0
-			x2[i] = (int) Math.round(x0.get(i) * Math.cos(this.rotation * Math.PI / 180)
-					- (y0.get(i) * Math.sin(this.rotation * Math.PI / 180)));
-			x2[i] += this.x - this.ammoSize / 2;
-			// y2 starts at 0
-			y2[i] = (int) Math.round(y0.get(i) * Math.cos(this.rotation * Math.PI / 180)
-					+ x0.get(i) * Math.sin(this.rotation * Math.PI / 180));
-			y2[i] += this.y - this.ammoSize / 2;
-		}
-
-		// Fills the ovals
-		for (int i = 0; i < y2.length && i < x2.length; i++) {
-			if (ammo > i)
-				g.fillOval(x2[i], y2[i], this.ammoSize, this.ammoSize);
-			else
-				g.drawOval(x2[i], y2[i], this.ammoSize, this.ammoSize);
+			// translates the ammo by half of their width so that they are drawn from the
+			// center
+			bulletTransform.translate(-ammoSize / 2, -ammoSize / 2);
+			if (i < ammo) {
+				g.fill(bulletTransform.createTransformedShape(circles.get(i)));
+			} else {
+				g.draw(bulletTransform.createTransformedShape(circles.get(i)));
+			}
 		}
 	}
 
-	private int[][] translatePoints(double xPos0, double xPos1, double yPos0, double yPos1) {
-		double[] x0 = { xPos0, xPos1, xPos1, xPos0 };
-		double[] y0 = { yPos0, yPos0, yPos1, yPos1 };
-		double[] x1 = new double[4];
-		double[] y1 = new double[4];
+	public void drawFuel(Graphics2D g) {
 
-		for (int i = 0; i < x1.length; i++) {
-			x0[i] += -this.x;
-			y0[i] += -this.y;
-		}
+		Rectangle2D.Double fuelBack = new Rectangle2D.Double(
+				-this.width / 2.0,
+				-1 * this.height * (37.0 / 48.0),
+				this.width,
+				this.height / 8.0);
 
-		for (int i = 0; i < x0.length; i++) {
-			// x2 starts as 0
-			x1[i] = (x0[i] * Math.cos(this.rotation * Math.PI / 180)
-					- (y0[i] * Math.sin(this.rotation * Math.PI / 180)));
-			x1[i] += this.x;
-			// y2 starts at 0
+		Rectangle2D.Double fuelFront = new Rectangle2D.Double(
+				(-this.width / 2.0) + this.width / 2 * (1.0 - this.fuel / this.fuelMax),
+				-1 * this.height * (37.0 / 48.0),
+				this.width * (this.fuel / this.fuelMax),
+				this.height / 8.0);
 
-			y1[i] = (x0[i] * Math.sin(this.rotation * Math.PI / 180)
-					+ y0[i] * Math.cos(this.rotation * Math.PI / 180));
-			y1[i] += this.y;
-		}
+		// increases the stroke
+		Stroke strokeOriginal = g.getStroke();
 
-		int[] x2 = new int[4];
-		int[] y2 = new int[4];
+		g.setStroke(new BasicStroke(2.0f));
 
-		for (int i = 0; i < x1.length; i++) {
-			x2[i] = (int) x1[i];
-			y2[i] = (int) y1[i];
-		}
+		g.setColor(new Color(100, 100, 100));
 
-		// oh boy do I miss my touples
-		int[][] points = { x2, y2 };
+		g.draw(objectTransform.createTransformedShape(fuelBack));
 
-		return points;
-	}
-
-	public void drawFuelBack(Graphics2D g) {
-
-		double xPos0 = this.x - this.width / 2;
-		double xPos1 = this.x + this.width / 2;
-		double yPos0 = this.y - this.height * (16 / 24.0);
-		double yPos1 = this.y - this.height * (19 / 24.0);
-
-		int[][] points = translatePoints(xPos0, xPos1, yPos0, yPos1);
-
-		int[] x2 = points[0];
-		int[] y2 = points[1];
-
-		g.setColor(new Color(50, 50, 50));
-
-		g.drawPolygon(x2, y2, 4);
-
-	}
-
-	public void drawFuelFront(Graphics2D g) {
-
-		double xPos0 = this.x - (this.width / 2) * this.fuel / this.fuelMax;
-		double xPos1 = this.x + (this.width / 2) * this.fuel / this.fuelMax;
-		double yPos0 = this.y - this.height * (16 / 24.0);
-		double yPos1 = this.y - this.height * (19 / 24.0);
-
-		int[][] points = translatePoints(xPos0, xPos1, yPos0, yPos1);
-
-		int[] x2 = points[0];
-		int[] y2 = points[1];
+		g.setStroke(strokeOriginal);
 
 		g.setColor(new Color(200, 50, 50));
 
-		g.fillPolygon(x2, y2, 4);
+		g.fill(objectTransform.createTransformedShape(fuelFront));
 
 	}
 
@@ -319,19 +229,19 @@ class AsteroidPlayer {
 	 */
 	public void spawnParticles() {
 		Asteroids.rumble();
-		this.fuel -= Asteroids.deltaTime * 2;
+		fuel -= Asteroids.deltaTime * 2;
 		for (int i = 0; i < particles.length; i++) {
 			if (particles[i] == null) {
-				double pX = (this.x + (this.height * Math.sin(rotation * Math.PI / 180)) * .9);
-				double pY = (this.y - ((this.height * Math.cos(rotation * Math.PI / 180)) * .9));
-				double pXv = this.xv * -0.3 + rand.nextDouble() * 1.5 - 0.1;
-				double pYv = this.yv * -0.3 + rand.nextDouble() * 1.5 - 0.1;
+				double pX = (x + (this.height * Math.sin(rotation * Math.PI / 180)) * .9);
+				double pY = (y - ((this.height * Math.cos(rotation * Math.PI / 180)) * .9));
+				double pXv = xv * -0.3 + rand.nextDouble() * 1.5 - 0.1;
+				double pYv = yv * -0.3 + rand.nextDouble() * 1.5 - 0.1;
 				int pSize = 20;
 				int pTime = 50;
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), rand.nextInt(60), rand.nextInt(60));
 
-				particles[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
+				particles[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this.particles);
 				break;
 			}
 		}
@@ -339,14 +249,14 @@ class AsteroidPlayer {
 
 	public void die() {
 		Asteroids.playExplode();
-		this.alive = false;
+		alive = false;
 		for (int i = 0; i < deathParticles.length; i++) {
 			if (deathParticles[i] == null) {
-				double pX = (this.x + (this.height * Math.sin(rotation * Math.PI / 180)) * 2.0 / 3.0);
-				double pY = (this.y - ((this.height * Math.cos(rotation * Math.PI / 180)) * 2.0 / 3.0));
-				double pXv = this.xv * -0.3 + rand.nextDouble() * 6 - 3;
-				double pYv = this.yv * -0.3 + rand.nextDouble() * 6 - 3;
-				int pSize = 100;
+				double pX = (x + (this.height * Math.sin(rotation * Math.PI / 180)) * 2.0 / 3.0);
+				double pY = (y - ((this.height * Math.cos(rotation * Math.PI / 180)) * 2.0 / 3.0));
+				double pXv = xv * -0.3 + rand.nextDouble() * 6 - 3;
+				double pYv = yv * -0.3 + rand.nextDouble() * 6 - 3;
+				float pSize = 100;
 				int pTime = 200;
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), rand.nextInt(70), rand.nextInt(70));
@@ -360,7 +270,7 @@ class AsteroidPlayer {
 
 		Asteroids.playShoot();
 
-		this.timeToNewBullet = 3000;
+		timeToNewBullet = 3000;
 
 		int bulletWidth = 20;
 
@@ -371,18 +281,18 @@ class AsteroidPlayer {
 		bullets[ammoMax - ammo] = new Bullet(bX, bY, 10, bulletWidth, this.rotation + 90);
 		ammo -= 1;
 		int spawned = 0;
-		for (int i = 0; i < shootParticles.length; i++) {
-			if (shootParticles[i] == null) {
+		for (int i = 0; i < shipShootParticle.length; i++) {
+			if (shipShootParticle[i] == null) {
 				double pX = bX;
 				double pY = bY;
-				double pXv = this.xv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
-				double pYv = this.yv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
+				double pXv = xv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
+				double pYv = yv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
 				int pSize = 20;
 				int pTime = 50;
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), 200 + rand.nextInt(55), 200 + rand.nextInt(55));
 
-				shootParticles[i] = new ShootParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this);
+				shipShootParticle[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor, this.shipShootParticle);
 				spawned++;
 				if (spawned > 10) {
 					break;
@@ -393,11 +303,11 @@ class AsteroidPlayer {
 
 	public void move() {
 
-		if (this.fuel <= 0) {
-			this.propulsed = false;
+		if (fuel <= 0) {
+			propulsed = false;
 		}
-		if (this.fuel >= this.fuelMax) {
-			this.propulsed = true;
+		if (fuel >= fuelMax) {
+			propulsed = true;
 		}
 
 		if (!alive) {
@@ -409,14 +319,14 @@ class AsteroidPlayer {
 			return;
 		}
 
-		this.timeToNewBullet -= Asteroids.deltaTime;
-		if (this.timeToNewBullet <= 0 && ammo < ammoMax) {
-			this.timeToNewBullet = 3000;
+		timeToNewBullet -= Asteroids.deltaTime;
+		if (timeToNewBullet <= 0 && ammo < ammoMax) {
+			timeToNewBullet = 3000;
 			ammo += 1;
 		}
 
-		this.x = (this.x + Asteroids.width) % Asteroids.width;
-		this.y = (this.y + Asteroids.height) % Asteroids.height;
+		x = (x + Asteroids.width) % Asteroids.width;
+		y = (y + Asteroids.height) % Asteroids.height;
 
 		// particles
 
@@ -425,9 +335,9 @@ class AsteroidPlayer {
 				particles[i].move();
 			}
 		}
-		for (int i = 0; i < shootParticles.length; i++) {
-			if (shootParticles[i] != null) {
-				shootParticles[i].move();
+		for (int i = 0; i < shipShootParticle.length; i++) {
+			if (shipShootParticle[i] != null) {
+				shipShootParticle[i].move();
 			}
 		}
 
@@ -440,19 +350,19 @@ class AsteroidPlayer {
 					Asteroids.keys[40] = false;
 				}
 
-				if (Asteroids.keys[38] && this.fuel > 0 && this.propulsed) {
-					this.yv += speed * Math.sin((this.rotation + 90) * Math.PI / 180);
-					this.xv += speed * Math.cos((this.rotation + 90) * Math.PI / 180);
-					this.spawnParticles();
+				if (Asteroids.keys[38] && fuel > 0 && propulsed) {
+					yv += speed * Math.sin((rotation + 90) * Math.PI / 180);
+					xv += speed * Math.cos((rotation + 90) * Math.PI / 180);
+					spawnParticles();
 				}
 				// if (Asteroids.keys[40]) {
-				// this.yv -= speed;
+				// yv -= speed;
 				// }
 				if (Asteroids.keys[39]) {
-					this.rotV += speed;
+					rotV += speed;
 				}
 				if (Asteroids.keys[37]) {
-					this.rotV -= speed;
+					rotV -= speed;
 				}
 				break;
 			}
@@ -463,29 +373,29 @@ class AsteroidPlayer {
 					Asteroids.keys[83] = false;
 				}
 
-				if (Asteroids.keys[87] && fuel > 0 && this.propulsed) {
-					this.yv += speed * Math.sin((this.rotation + 90) * Math.PI / 180);
-					this.xv += speed * Math.cos((this.rotation + 90) * Math.PI / 180);
-					this.spawnParticles();
+				if (Asteroids.keys[87] && fuel > 0 && propulsed) {
+					yv += speed * Math.sin((rotation + 90) * Math.PI / 180);
+					xv += speed * Math.cos((rotation + 90) * Math.PI / 180);
+					spawnParticles();
 				}
 				// if (Asteroids.keys[40]) {
-				// this.yv -= speed;
+				// yv -= speed;
 				// }
 				if (Asteroids.keys[68]) {
-					this.rotV += speed;
+					rotV += speed;
 				}
 				if (Asteroids.keys[65]) {
-					this.rotV -= speed;
+					rotV -= speed;
 				}
 				break;
 			}
 		}
-		this.x += this.xv;
-		this.y += this.yv;
-		this.rotation += this.rotV;
-		this.rotV *= 0.98;
-		this.xv *= 0.99;
-		this.yv *= 0.99;
+		x += xv;
+		y += yv;
+		rotation += rotV;
+		rotV *= 0.98;
+		xv *= 0.99;
+		yv *= 0.99;
 
 		for (int i = 0; i < bullets.length; i++) {
 			if (bullets[i] != null) {
@@ -493,8 +403,12 @@ class AsteroidPlayer {
 			}
 		}
 
-		this.fuel = Math.min(this.fuel + Asteroids.deltaTime / 2, this.fuelMax);
-		this.fuel = Math.max(this.fuel, 0);
+		fuel = Math.min(fuel + Asteroids.deltaTime / 2, fuelMax);
+		fuel = Math.max(fuel, 0);
+
+		objectTransform.setToIdentity();
+		objectTransform.translate(x, y);
+		objectTransform.rotate(Math.toRadians(rotation));
 
 	}
 }

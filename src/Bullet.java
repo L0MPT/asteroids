@@ -1,5 +1,9 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.awt.Shape;
 
 class Bullet {
 	double x;
@@ -8,6 +12,8 @@ class Bullet {
 	int height;
 	double velocity;
 	double rotation;
+
+	Shape bulletShape;
 
 	int xMin, xMax, yMin, yMax;
 
@@ -28,63 +34,98 @@ class Bullet {
 	public void display(Graphics2D g) {
 		g.setColor(Color.white);
 
-		int[] x1 = { (int) (this.x), (int) this.x + this.width, (int) (this.x + this.width), (int) (this.x) };
+		AffineTransform bulletTransform = new AffineTransform();
 
-		int[] y1 = { (int) (this.y), (int) (this.y), (int) (this.y + this.height), (int) (this.y + this.height) };
-		int[] x2 = new int[4];
-		int[] y2 = new int[4];
+		Rectangle2D.Double bullet = new Rectangle2D.Double(0, 0, width, height);
 
-		// first adjusts the values of the original
-		for (int i = 0; i < x1.length; i++) {
-			x1[i] += -this.x;
-			y1[i] += -this.y;
-		}
+		bulletTransform.setToIdentity();
+		bulletTransform.translate(x, y);
+		bulletTransform.rotate(Math.toRadians(rotation));
+		bulletTransform.translate(-width / 2, -height / 2);
+		bulletTransform.translate(height, 0);
 
-		// Rotates. I made these the same for neatness
-		for (int i = 0; i < x1.length; i++) {
-			// x2 starts as 0
-			x2[i] = (int) (x1[i] * Math.cos(this.rotation * Math.PI / 180)
-					- (y1[i] * Math.sin(this.rotation * Math.PI / 180)));
-			x2[i] += this.x;
-			// y2 starts at 0
-			y2[i] = (int) (y1[i] * Math.cos(this.rotation * Math.PI / 180)
-					+ x1[i] * Math.sin(this.rotation * Math.PI / 180));
-			y2[i] += this.y;
-		}
+		bulletShape = bulletTransform.createTransformedShape(bullet);
 
-		xMin = x2[0];
-		xMax = x2[0];
-		yMin = y2[0];
-		yMax = y2[0];
-		for (int i = 1; i < x2.length; i++) {
-			if (x2[i] < xMin) {
-				xMin = x2[i];
-			}
-			if (x2[i] > xMax) {
-				xMax = x2[i];
-			}
-			if (y2[i] < yMin) {
-				yMin = y2[i];
-			}
-			if (y2[i] > yMax) {
-				yMax = y2[i];
-			}
+		g.fill(bulletShape);
 
-		}
-
-		// g.drawRect(xMin, yMin, xMax - xMin, yMax - yMin);
-
-		g.fillPolygon(x2, y2, 4);
+		Rectangle bounds = bulletShape.getBounds();
+		xMin = bounds.x;
+		xMax = bounds.x + bounds.width;
+		yMin = bounds.y;
+		yMax = bounds.y + bounds.height;
 
 	}
 
 	public void move() {
-		this.x += this.velocity * Math.cos(this.rotation * Math.PI / 180);
-		this.y += this.velocity * Math.sin(this.rotation * Math.PI / 180);
+		x += velocity * Math.cos(Math.toRadians(rotation));
+		y += velocity * Math.sin(Math.toRadians(rotation));
 
 	}
 
+	/**
+	 * Checks if the bullet collides with the given rectangular bounds. This method
+	 * uses the {@code rectRect} method of the {@code Asteroids} class.
+	 *
+	 * @deprecated This method is deprecated and should not be used. Use the other
+	 *             {@code collide} methods instead.
+	 * @param tX the x-coordinate of the top-left corner of the rectangular bounds
+	 * @param tY the y-coordinate of the top-left corner of the rectangular bounds
+	 * @param tW the width of the rectangular bounds
+	 * @param tH the height of the rectangular bounds
+	 * @return {@code true} if the bullet collides with the given rectangular
+	 *         bounds,
+	 *         {@code false} otherwise
+	 */
+
 	public boolean collide(int tX, int tY, int tW, int tH) {
-		return Asteroids.rectRect(this.xMin, this.yMin, this.xMax - this.xMin, this.yMax - this.yMin, tX, tY, tW, tH);
+		return Asteroids.rectRect(xMin, yMin, xMax - xMin, yMax - yMin, tX, tY, tW, tH);
+	}
+
+	/**
+	 * Checks if the bullet's shape collides with the given rectangular bounds. This
+	 * method uses the {@code intersects} method of the {@code Shape} class of the
+	 * Bullet.
+	 *
+	 * @param bounds the {@code Rectangle2D} bounds to check for collision
+	 * @return {@code true} if the bullet's shape intersects with the given bounds,
+	 *         {@code false} otherwise
+	 */
+	public boolean collide(Rectangle2D bounds) {
+		if (bulletShape == null) {
+			return false;
+		} else {
+			return bulletShape.intersects(bounds);
+		}
+	}
+
+	/**
+	 * Checks if the bullet's shape collides with the given rectangular bounds. This
+	 * method uses the {@code intersects} method of the {@code Shape} class of the
+	 * Bullet.
+	 *
+	 * @param bounds the {@code Rectangle} bounds to check for collision
+	 * @return {@code true} if the bullet's shape intersects with the given bounds,
+	 *         {@code false} otherwise
+	 */
+	public boolean collide(Rectangle bounds) {
+		if (bulletShape == null)
+			return false;
+		return bulletShape.intersects(bounds);
+	}
+
+	/**
+	 * Checks if the bullet collides with the given shape. This method uses the
+	 * {@code intersects} method of the {@code Shape} class. Additionally, this
+	 * method uses the {@code Shape} class as a parameter to better represent the
+	 * collision with a larger inputted shape.
+	 *
+	 * @param shape the shape to check for collision with the bullet
+	 * @return {@code true} if the bullet collides with the given shape,
+	 *         {@code false} otherwise
+	 */
+	public boolean collide(Shape shape) {
+		if (bulletShape == null)
+			return false;
+		return shape.intersects(bulletShape.getBounds2D());
 	}
 }

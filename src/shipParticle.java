@@ -1,5 +1,7 @@
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
 
 class ShipParticle {
 	double x;
@@ -11,10 +13,12 @@ class ShipParticle {
 	int timeOriginal;
 	int id;
 	Color color;
-	AsteroidPlayer parentPlayer;
+	ShipParticle[] arrayReference;
 
-	ShipParticle(double x, double y, double xv, double yv, int size, int time, int id, Color color,
-			AsteroidPlayer parentPlayer) {
+	static Ellipse2D circle = new Ellipse2D.Double(-0.5, -0.5, 1, 1);
+	static AffineTransform shipParticleTransform = new AffineTransform();
+
+	ShipParticle(double x, double y, double xv, double yv, int size, int time, int id, Color color, ShipParticle[] arrayReference) {
 		this.x = x;
 		this.y = y;
 		this.xv = xv;
@@ -24,42 +28,54 @@ class ShipParticle {
 		this.timeOriginal = time;
 		this.id = id;
 		this.color = color;
-		this.parentPlayer = parentPlayer;
+		// TODO: This is meant to require a referance to the array of particles so that it can delete itself
+		this.arrayReference = arrayReference;
 	}
 
 	public void display(Graphics2D g) {
-		g.setColor(this.color);
-		int trueSize = (int) (this.size * (this.time / (double) this.timeOriginal));
-		g.fillOval((int) this.x - trueSize / 2, (int) this.y - trueSize / 2, trueSize, trueSize);
+		g.setColor(color);
+		float trueSize = size * time / timeOriginal;
+
+		shipParticleTransform.setToIdentity();
+		shipParticleTransform.translate(x, y);
+		shipParticleTransform.scale(trueSize, trueSize);
+		g.fill(shipParticleTransform.createTransformedShape(circle));
+
 
 		// Looping screen
-		// I don't think I need any of the other ones since this is aligned to the top
-		// left point.
 		boolean rightOver = this.x + trueSize > Asteroids.width;
-		boolean leftOver = this.y + trueSize > Asteroids.height;
+		boolean bottomOver = this.y + trueSize > Asteroids.height;
 		if (rightOver) {
-			g.fillOval((int) this.x - trueSize / 2 - Asteroids.width, (int) this.y - trueSize / 2, trueSize, trueSize);
+			shipParticleTransform.translate(-Asteroids.width, 0);
+			g.fill(shipParticleTransform.createTransformedShape(circle));
+			shipParticleTransform.translate(Asteroids.width, 0);
 		}
-		if (leftOver) {
-			g.fillOval((int) this.x - trueSize / 2, (int) this.y - trueSize / 2 - Asteroids.height, trueSize, trueSize);
+		if (bottomOver) {
+			shipParticleTransform.translate(0, -Asteroids.height);
+			g.fill(shipParticleTransform.createTransformedShape(circle));
+			shipParticleTransform.translate(0, Asteroids.height);
 		}
-		if (leftOver && rightOver) {
-			g.fillOval((int) this.x - trueSize / 2 - Asteroids.width, (int) this.y - trueSize / 2 - Asteroids.height,
-					trueSize, trueSize);
+		if (bottomOver && rightOver) {
+			shipParticleTransform.translate(-Asteroids.width, -Asteroids.height);
+			g.fill(shipParticleTransform.createTransformedShape(circle));
 		}
 	}
 
 	public void move() {
-		this.time -= 1;
+		time -= 1;
 		// Paricles are deleted here
-		if (this.time <= 0) {
-			this.parentPlayer.particles[id] = null;
+		if (time <= 0) {
+			arrayReference[id] = null;
 		}
-		this.x += this.xv;
-		this.y += this.yv;
-		this.xv *= 0.99;
-		this.yv *= 0.99;
-		this.x = (this.x + Asteroids.width) % Asteroids.width;
-		this.y = (this.y + Asteroids.height) % Asteroids.height;
+		x += xv;
+		y += yv;
+
+		// Slight Deceleration
+		xv *= 0.99;
+		yv *= 0.99;
+
+		// Loops the particles across the screen
+		x = (x + Asteroids.width) % Asteroids.width;
+		y = (y + Asteroids.height) % Asteroids.height;
 	}
 }
