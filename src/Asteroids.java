@@ -33,8 +33,11 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-	final static int width = (int) screenSize.getWidth();;
-	final static int height = (int) screenSize.getHeight();;
+	public static int width = 900;
+	public static int height = 500;
+
+	public static boolean fullscreenEnabled = false;
+
 	static boolean[] keys = new boolean[227];
 
 	static int rotation = 50;
@@ -46,10 +49,12 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	static double rotV = 0;
 
-	static String enteredRot = "";
-
 	AsteroidPlayer player1;
 	AsteroidPlayer player2;
+
+	ScoreIndicator p1ScoreIndicator = new ScoreIndicator(0, p1Color, false, false, 5);
+	ScoreIndicator p2ScoreIndicator = new ScoreIndicator(0, p2Color, true, true, 5);
+
 
 	int score1 = 0;
 	int score2 = 0;
@@ -62,7 +67,6 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	public static Color p2Color = new Color(60, 255, 60);
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				initWindow();
@@ -86,14 +90,21 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		window.addMouseListener(boardy);
 		window.addMouseMotionListener(boardy);
 		// don't allow the user to resize the window
-		window.setResizable(false);
-		window.setUndecorated(true);
-		window.getGraphicsConfiguration().getDevice().setFullScreenWindow(window);
+		window.setResizable(true); // ORIGNINALLY FALSE
+
+		window.setUndecorated(false); // ORIGINALLY TRUE
+
+		// set the window to full screen
+		// window.getGraphicsConfiguration().getDevice().setFullScreenWindow(window);
 
 		// fit the window size around the components (just our jpanel).
 		// pack() should be called after setResizable() to avoid issues on some
 		// platforms
 		window.pack();
+
+
+		window.getContentPane().addComponentListener(new ResizeListener());
+
 		// open window in the center of the screen
 		window.setLocationRelativeTo(null);
 		// display the window
@@ -141,6 +152,18 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 				createPlayers();
 			}
 
+			// fullscreen f11
+			if (keys[122]) {
+				keys[122] = false;
+				if (fullscreenEnabled) {
+					fullscreenEnabled = false;
+					enterWindowMode();
+				} else {
+					fullscreenEnabled = true;
+					enterFullscreenMode();
+				}
+			}
+
 			long currentFrameTime = System.nanoTime();
 			deltaTime = (currentFrameTime - pastTime) / 1000000;
 
@@ -186,6 +209,9 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 					}
 				}
 
+				p1ScoreIndicator.score = score1;
+				p2ScoreIndicator.score = score2;
+
 				SwingUtilities.invokeLater(this::repaint); // multithreading or something
 
 				pastTime = System.nanoTime();
@@ -214,35 +240,23 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		// react to imageUpdate() events triggered by g.drawImage()
 		g2D.setColor(p1Color);
 
-
 		// apply rumble
 		g2D.translate(r.nextDouble() * getRumble(), r.nextDouble() * getRumble());
 
-
-		drawRot(g2D);
-		drawPoint(g2D);
-
-		g2D.drawString(String.valueOf(score1), 10, 50);
+		// g2D.drawString(String.valueOf(score1), 10, 50);
 		g2D.setColor(p2Color);
-		g2D.drawString(String.valueOf(score2), width - 50, 50);
+		// g2D.drawString(String.valueOf(score2), width - 50, 50);
 
 		// g2D.drawString(Double.toString(deltaTime), 80, 80);
 
 		player1.display(g2D);
 		player2.display(g2D);
 
+		p1ScoreIndicator.display(g2D);
+		p2ScoreIndicator.display(g2D);
+
 		// this smoothes out animations on some systems
 		Toolkit.getDefaultToolkit().sync();
-	}
-
-	private void drawRot(Graphics2D g) {
-		// TODO Auto-generated method stub
-		g.drawString(enteredRot, 20, 50);
-	}
-
-	private void drawPoint(Graphics2D g) {
-		// TODO Auto-generated method stub
-
 	}
 
 	static void rumble() {
@@ -271,12 +285,20 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		SoundPlayer.loadStoppedSound("sounds/explosion.wav");
 	}
 
-	// Draws
-	// Not Called
-	public void drawOriginal(Graphics2D g) {
-		int[] x1 = { x - rectWidth / 2, x + rectWidth / 2, x };
-		int[] y1 = { y - rectHeight / 3, y - rectHeight / 3, y + rectHeight * 2 / 3 };
-		g.drawPolygon(x1, y1, 3);
+	void enterFullscreenMode() {
+		JFrame window = (JFrame) SwingUtilities.getWindowAncestor(this);
+		window.dispose();
+		window.setUndecorated(true);
+		window.setExtendedState(JFrame.MAXIMIZED_BOTH);
+		window.setVisible(true);
+	}
+
+	void enterWindowMode() {
+		JFrame window = (JFrame) SwingUtilities.getWindowAncestor(this);
+		window.dispose();
+		window.setUndecorated(false);
+		window.setExtendedState(JFrame.NORMAL);
+		window.setVisible(true);
 	}
 
 	public static boolean rectRect(double rx1, double ry1, int w1, int h1, double rx2, double ry2, int w2, int h2) {
