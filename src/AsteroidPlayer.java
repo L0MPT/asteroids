@@ -285,12 +285,17 @@ class AsteroidPlayer {
 			if (shipShootParticle[i] == null) {
 				double pX = bX;
 				double pY = bY;
-				double pXv = xv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
-				double pYv = yv * 0.4 + rand.nextDouble() * 1.5 - 0.1;
+				double pXv = xv * 0.4 + (rand.nextDouble() - 0.5) * 1.5;
+				double pYv = yv * 0.4 + (rand.nextDouble() - 0.5) * 1.5;
 				int pSize = 20;
 				int pTime = 50;
 				int pId = i;
 				Color pColor = new Color(200 + rand.nextInt(55), 200 + rand.nextInt(55), 200 + rand.nextInt(55));
+
+				// Xv is negated to make sure the particles go in the right direction
+				// I am not sure why it is nescassary
+				pXv -= Math.sin(Math.toRadians(rotation));
+				pYv += Math.cos(Math.toRadians(rotation));
 
 				shipShootParticle[i] = new ShipParticle(pX, pY, pXv, pYv, pSize, pTime, pId, pColor,
 						this.shipShootParticle);

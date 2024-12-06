@@ -11,6 +11,7 @@ import javax.sound.sampled.LineListener;
 public class SoundPlayer {
 
 	static ArrayList<Sound> sounds = new ArrayList<Sound>();
+	static boolean mute = false;
 
 	public static boolean searchSounds(String filePath) {
 		if (sounds == null) {
@@ -93,6 +94,9 @@ public class SoundPlayer {
 		// the next code is for playing sound files (wav format)
 		// if (decay && Asteroids.getRumble() == 0)
 		// return;
+		if(mute) {
+			return;
+		}
 
 		if (searchSounds(path)) {
 			int soundIndex = getSoundIndexStopped(path);
@@ -126,6 +130,9 @@ public class SoundPlayer {
 			throw new IllegalArgumentException("Volume not valid: " + volume);
 		FloatControl gainControl = (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
 		gainControl.setValue(20f * (float) Math.log10(volume));
+	}
+	public static void muteToggle() {
+		mute = !mute;
 	}
 }
 
