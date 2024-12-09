@@ -13,10 +13,10 @@ public class Star {
 
     // may remove for performance
     float size;
-    Color color;
+    Color color; // TODO: figure out a way to make this only an int for transparency
     AffineTransform starTransform = new AffineTransform();
     static Ellipse2D.Float circle = new Ellipse2D.Float(-0.5f, -0.5f, 1, 1);
-    public static final float jerk = 0.02f;
+    public static final float jerk = 0.01f;
 
     Star() {
         this.x = (float) (Math.random() * Asteroids.width);
@@ -28,6 +28,7 @@ public class Star {
     }
     public void display(Graphics2D g) {
         g.setColor(color);
+        g.getColor();
         starTransform.setToIdentity();
         starTransform.translate(x, y);
         starTransform.scale(size, size);

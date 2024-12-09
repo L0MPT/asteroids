@@ -109,12 +109,37 @@ public class SoundPlayer {
 		}
 
 	}
+	public static void playSound(String path) {
+		if(mute) {
+			return;
+		}
+		if (searchSounds(path)) {
+			int soundIndex = getSoundIndexStopped(path);
+			Sound sound = sounds.get(soundIndex);
+			if (!sound.clip.isRunning()) {
+				sound.play();
+			}
+		} else {
+			loadPlay(path);
+		}
+
+	}
 
 	private static void loadPlay(String path, Boolean decay) {
 		loadSound(path);
 		if (searchSounds(path)) {
 			int soundIndex = getSoundIndexStopped(path);
 			sounds.get(soundIndex).play(decay);
+		} else {
+			System.err.println("Error in playing sound");
+		}
+	}
+
+	private static void loadPlay(String path) {
+		loadSound(path);
+		if (searchSounds(path)) {
+			int soundIndex = getSoundIndexStopped(path);
+			sounds.get(soundIndex).play();
 		} else {
 			System.err.println("Error in playing sound");
 		}
@@ -157,6 +182,9 @@ class Sound {
 		if (decay) {
 			SoundPlayer.setVolume(clip, (float) (Asteroids.getRumble() / Asteroids.getRumblemax()));
 		}
+		clip.start();
+	}
+	void play() {
 		clip.start();
 	}
 

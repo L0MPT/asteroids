@@ -18,7 +18,7 @@ class AsteroidPlayer {
 	int type;
 
 	final int ammoSize = 7;
-	int ammoMax = 3;
+	int ammoMax = 2;
 	int ammo = ammoMax;
 
 	Random rand = new Random();
@@ -56,11 +56,12 @@ class AsteroidPlayer {
 
 	int xMin, xMax, yMin, yMax;
 
-	AsteroidPlayer(int x, int y, int width, int height, int i) {
+	AsteroidPlayer(int x, double y, int width, int height, int i) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
+		this.rotation = rand.nextDouble() * 360;
 		this.type = i;
 
 		xMin = (int) this.x;
@@ -76,6 +77,30 @@ class AsteroidPlayer {
 		ship.lineTo(this.width / 2, -1 * this.height / 3);
 		ship.lineTo(0, this.height * 2 / 3);
 		ship.closePath();
+	}
+
+	void respawn(int x, int y) {
+		this.x = x;
+		this.y = y;
+		this.rotation = rand.nextDouble() * 360;
+		this.alive = true;
+		this.fuel = fuelMax;
+		this.ammo = ammoMax;
+		this.xv = 0;
+		this.yv = 0;
+		this.rotV = 0;
+		for (int i = 0; i < particles.length; i++) {
+			particles[i] = null;
+		}
+		for (int i = 0; i < deathParticles.length; i++) {
+			deathParticles[i] = null;
+		}
+		for (int i = 0; i < shipShootParticle.length; i++) {
+			shipShootParticle[i] = null;
+		}
+		for (int i = 0; i < bullets.length; i++) {
+			bullets[i] = null;
+		}
 	}
 
 	public void display(Graphics2D g) {
@@ -219,6 +244,12 @@ class AsteroidPlayer {
 		g.setStroke(strokeOriginal);
 
 		g.setColor(new Color(200, 50, 50));
+
+		if(propulsed) {
+			g.setColor(new Color(200, 50, 50));
+		} else {
+			g.setColor(new Color(200, 120, 120));
+		}
 
 		g.fill(objectTransform.createTransformedShape(fuelFront));
 
