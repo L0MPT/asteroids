@@ -56,6 +56,11 @@ class AsteroidPlayer {
 
 	int xMin, xMax, yMin, yMax;
 
+	Color myColor;
+
+	static BasicStroke stroke = new BasicStroke(1.0f);
+	static Color strokeColor = new Color(20, 20, 20);
+
 	AsteroidPlayer(int x, double y, int width, int height, int i) {
 		this.x = x;
 		this.y = y;
@@ -63,6 +68,21 @@ class AsteroidPlayer {
 		this.height = height;
 		this.rotation = rand.nextDouble() * 360;
 		this.type = i;
+
+		switch (type) {
+			case 0: {
+				myColor = Asteroids.p1Color;
+				break;
+			}
+
+			case 1: {
+				myColor = Asteroids.p2Color;
+				break;
+			}
+
+			default:
+				break;
+		}
 
 		xMin = (int) this.x;
 		xMax = (int) this.x;
@@ -104,6 +124,7 @@ class AsteroidPlayer {
 	}
 
 	public void display(Graphics2D g) {
+
 		if (!alive) {
 			// draws particles
 			for (int i = 0; i < deathParticles.length; i++) {
@@ -116,20 +137,13 @@ class AsteroidPlayer {
 
 		// sets color:
 		// double fuelPercent = (fuel / fuelMax);
-		switch (type) {
-			case 0: {
-				g.setPaint(Asteroids.p1Color);
-				break;
-			}
 
-			case 1: {
-				g.setPaint(Asteroids.p2Color);
-				break;
-			}
+		g.setColor(myColor);
 
-			default:
-				break;
-		}
+		// saves the stroke so it can be undone later
+		Stroke strokePush = g.getStroke();
+
+		g.setStroke(stroke);
 
 		AffineTransform shipTransformation = new AffineTransform();
 
@@ -146,9 +160,19 @@ class AsteroidPlayer {
 				shipTransformation.setToIdentity();
 				shipTransformation.translate(x + i * Asteroids.width, y + j * Asteroids.height);
 				shipTransformation.rotate(Math.toRadians(rotation));
+
+				g.setColor(strokeColor);
+				g.draw(ship.createTransformedShape(shipTransformation));
+				
+				g.setColor(myColor);
 				g.fill(ship.createTransformedShape(shipTransformation));
 			}
 		}
+
+		// undos changes to stroke
+		g.setStroke(strokePush);
+
+
 
 		g.setColor(Color.gray);
 		// Ammo Counter
@@ -186,7 +210,7 @@ class AsteroidPlayer {
 		ArrayList<Ellipse2D> circles = new ArrayList<Ellipse2D>();
 
 		double difference = this.width / 2;
-		double yOffset = -this.height * 0.45;
+		double yOffset = -this.height * 0.5;
 		if (this.ammoMax % 2 == 0) {
 			for (int i = 1; i <= ammoMax / 2; i++) {
 				circles.add(new Ellipse2D.Double((i - 0.5) * difference, yOffset, ammoSize, ammoSize));
@@ -242,8 +266,6 @@ class AsteroidPlayer {
 		g.draw(objectTransform.createTransformedShape(fuelBack));
 
 		g.setStroke(strokeOriginal);
-
-		g.setColor(new Color(200, 50, 50));
 
 		if(propulsed) {
 			g.setColor(new Color(200, 50, 50));

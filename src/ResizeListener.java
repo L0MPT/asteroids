@@ -18,5 +18,8 @@ class ResizeListener implements ComponentListener {
         Dimension newSize = e.getComponent().getSize();
         Asteroids.width = newSize.width;
         Asteroids.height = newSize.height;
+
+        // The stars are repositioned
+        Asteroids.redistributeStars();
     }
 }

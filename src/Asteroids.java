@@ -318,6 +318,15 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		}
 	}
 
+	static void redistributeStars() {
+		for (Star s : stars) {
+			if (s == null) {
+				continue;
+			}
+			s.redistribute();
+		}
+	}
+
 	void enterFullscreenMode() {
 		JFrame window = (JFrame) SwingUtilities.getWindowAncestor(this);
 		window.dispose();
