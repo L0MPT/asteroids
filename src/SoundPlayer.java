@@ -98,12 +98,10 @@ public class SoundPlayer {
 			return;
 		}
 
-		if (searchSounds(path)) {
+		if (searchSoundsStopped(path)) {
 			int soundIndex = getSoundIndexStopped(path);
 			Sound sound = sounds.get(soundIndex);
-			if (!sound.clip.isRunning()) {
-				sound.play(decay);
-			}
+			sound.play(decay);
 		} else {
 			loadPlay(path, decay);
 		}
@@ -113,12 +111,10 @@ public class SoundPlayer {
 		if(mute) {
 			return;
 		}
-		if (searchSounds(path)) {
+		if (searchSoundsStopped(path)) {
 			int soundIndex = getSoundIndexStopped(path);
 			Sound sound = sounds.get(soundIndex);
-			if (!sound.clip.isRunning()) {
-				sound.play();
-			}
+			sound.play();
 		} else {
 			loadPlay(path);
 		}
