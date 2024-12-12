@@ -18,7 +18,7 @@ class AsteroidPlayer {
 	int type;
 
 	final int ammoSize = 7;
-	int ammoMax = 2;
+	int ammoMax = 3;
 	int ammo = ammoMax;
 
 	Random rand = new Random();
@@ -325,13 +325,13 @@ class AsteroidPlayer {
 
 		timeToNewBullet = 3000;
 
-		int bulletWidth = 20;
+		int bulletWidth = 15;
 
 		// Could adjust such that it shoots from the tip of the triangle
 		double bX = this.x - ((this.height * Math.cos((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
 		double bY = this.y - ((this.height * Math.sin((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
 
-		bullets[ammoMax - ammo] = new Bullet(bX, bY, 10, bulletWidth, this.rotation + 90);
+		bullets[ammoMax - ammo] = new Bullet(bX, bY, 20, bulletWidth, this.rotation + 90);
 		ammo -= 1;
 		int spawned = 0;
 		for (int i = 0; i < shipShootParticle.length; i++) {
@@ -470,4 +470,10 @@ class AsteroidPlayer {
 		objectTransform.rotate(Math.toRadians(rotation));
 
 	}
+
+	void redistribute(int width, int height) {
+		this.x = x / Asteroids.width * width;
+		this.y = y / Asteroids.height * height;
+	}
+
 }

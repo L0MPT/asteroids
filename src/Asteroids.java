@@ -49,8 +49,8 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	static double rotV = 0;
 
-	AsteroidPlayer player1;
-	AsteroidPlayer player2;
+	static AsteroidPlayer player1;
+	static AsteroidPlayer player2;
 
 	ScoreIndicator p1ScoreIndicator = new ScoreIndicator(0, p1Color, false, false, 5);
 	ScoreIndicator p2ScoreIndicator = new ScoreIndicator(0, p2Color, true, true, 5);
@@ -117,6 +117,8 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		preloadSounds();
 		createStars();
 
+		setDoubleBuffered(true);
+
 		new Thread(this::gameLoop).start();
 	}
 
@@ -160,6 +162,10 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 			if (keys[32]) {
 				keys[32] = false;
 				respawnPlayers();
+				if(score1 >= 5 || score2 >= 5) {
+					score1 = 0;
+					score2 = 0;
+				}
 			}
 
 			// fullscreen f11
@@ -229,6 +235,11 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 				p1ScoreIndicator.score = score1;
 				p2ScoreIndicator.score = score2;
 
+				if(score1 >= 5 || score2 >= 5) {
+					player1.die();
+					player2.die();
+				}
+
 				for (Star s : stars) {
 					if (s == null) {
 						continue;
@@ -283,6 +294,16 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		p1ScoreIndicator.display(g2D);
 		p2ScoreIndicator.display(g2D);
 
+		// Win screen
+		if(score1 >= 5) {
+			g2D.setColor(p1Color);
+			g2D.drawString("Player 1 Wins!", width / 2 - 150, height / 2);
+		}
+		if(score2 >= 5) {
+			g2D.setColor(p2Color);
+			g2D.drawString("Player 2 Wins!", width / 2 - 150, height / 2);
+		}
+
 		// this smoothes out animations on some systems
 		Toolkit.getDefaultToolkit().sync();
 	}
@@ -325,6 +346,20 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 			}
 			s.redistribute();
 		}
+	}
+
+	static void redistributeStars(int w, int h) {
+		for (Star s : stars) {
+			if (s == null) {
+				continue;
+			}
+			s.redistribute(w, h);
+		}
+	}
+
+	static void redistributePlayer(int w, int h) {
+		player1.redistribute(w, h);
+		player2.redistribute(w, h);
 	}
 
 	void enterFullscreenMode() {

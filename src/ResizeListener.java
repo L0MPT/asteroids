@@ -16,10 +16,12 @@ class ResizeListener implements ComponentListener {
     public void componentResized(ComponentEvent e) {
         // If the window is resized, the width and height of Asteroid is updated
         Dimension newSize = e.getComponent().getSize();
-        Asteroids.width = newSize.width;
-        Asteroids.height = newSize.height;
 
         // The stars are repositioned
-        Asteroids.redistributeStars();
+        Asteroids.redistributeStars(newSize.width, newSize.height);
+        Asteroids.redistributePlayer(newSize.width, newSize.height);
+
+        Asteroids.width = newSize.width;
+        Asteroids.height = newSize.height;
     }
 }

@@ -85,8 +85,21 @@ public class Star {
         }
     }
 
+    /**
+     * Randomly redistributes the star's position within the boundaries of the game screen.
+     * The new position is determined by generating random x and y coordinates
+     * within the width and height of the game screen.
+     * @see Asteroids#redistributeStars()
+     */
     public void redistribute() {
         x = (float) (Math.random() * Asteroids.width);
         y = (float) (Math.random() * Asteroids.height);
+    }
+
+
+
+    public void redistribute(int width, int height) {
+        x = x / Asteroids.width * width;
+        y = y / Asteroids.height * height;
     }
 }
