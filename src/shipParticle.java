@@ -8,7 +8,7 @@ class ShipParticle {
 	double y;
 	double xv;
 	double yv;
-	int size;
+	double size;
 	int time;
 	int timeOriginal;
 	int id;
@@ -33,7 +33,7 @@ class ShipParticle {
 
 	public void display(Graphics2D g) {
 		g.setColor(color);
-		float trueSize = size * time / timeOriginal;
+		double trueSize = size * time / timeOriginal;
 
 		shipParticleTransform.setToIdentity();
 		shipParticleTransform.translate(x, y);

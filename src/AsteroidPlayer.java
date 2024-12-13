@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 class AsteroidPlayer {
-	int width;
-	int height;
+	int width = 30;
+	int height = 40;
 	double x;
 	double y;
 
@@ -61,11 +61,9 @@ class AsteroidPlayer {
 	static BasicStroke stroke = new BasicStroke(1.0f);
 	static Color strokeColor = new Color(20, 20, 20);
 
-	AsteroidPlayer(int x, double y, int width, int height, int i) {
+	AsteroidPlayer(int x, double y, int i) {
 		this.x = x;
 		this.y = y;
-		this.width = width;
-		this.height = height;
 		this.rotation = rand.nextDouble() * 360;
 		this.type = i;
 
@@ -163,7 +161,7 @@ class AsteroidPlayer {
 
 				g.setColor(strokeColor);
 				g.draw(ship.createTransformedShape(shipTransformation));
-				
+
 				g.setColor(myColor);
 				g.fill(ship.createTransformedShape(shipTransformation));
 			}
@@ -171,8 +169,6 @@ class AsteroidPlayer {
 
 		// undos changes to stroke
 		g.setStroke(strokePush);
-
-
 
 		g.setColor(Color.gray);
 		// Ammo Counter
@@ -226,18 +222,25 @@ class AsteroidPlayer {
 
 		AffineTransform bulletTransform = new AffineTransform();
 
-		for (int i = 0; i < circles.size(); i++) {
-			bulletTransform.setToIdentity();
-			bulletTransform.translate(x, y);
-			bulletTransform.rotate(Math.toRadians(rotation));
-
-			// translates the ammo by half of their width so that they are drawn from the
-			// center
-			bulletTransform.translate(-ammoSize / 2, -ammoSize / 2);
-			if (i < ammo) {
-				g.fill(bulletTransform.createTransformedShape(circles.get(i)));
-			} else {
-				g.draw(bulletTransform.createTransformedShape(circles.get(i)));
+		// draws the thing 9 times so overflow works
+		for (byte i = -1; i <= 1; i++) {
+			for (byte j = -1; j <= 1; j++) {
+				bulletTransform.setToIdentity();
+				bulletTransform.translate(i * Asteroids.width, j * Asteroids.height);
+				bulletTransform.translate(x, y);
+				bulletTransform.rotate(Math.toRadians(rotation));
+				for (int k = 0; k < circles.size(); k++) {
+					// translates the ammo by half of their width so that they are drawn from the
+					// center
+					bulletTransform.translate(-ammoSize / 2, -ammoSize / 2);
+					if (k < ammo) {
+						g.fill(bulletTransform.createTransformedShape(circles.get(k)));
+					} else {
+						g.draw(bulletTransform.createTransformedShape(circles.get(k)));
+					}
+					// undoes transformations
+					bulletTransform.translate(ammoSize / 2, ammoSize / 2);
+				}
 			}
 		}
 	}
@@ -259,21 +262,30 @@ class AsteroidPlayer {
 		// increases the stroke
 		Stroke strokeOriginal = g.getStroke();
 
-		g.setStroke(new BasicStroke(2.0f));
+		// draws the thing 9 times so overflow works
+		for (byte i = -1; i <= 1; i++) {
+			for (byte j = -1; j <= 1; j++) {
+				g.translate(i * Asteroids.width, j * Asteroids.height);
 
-		g.setColor(new Color(100, 100, 100));
+				g.setStroke(new BasicStroke(2.0f));
 
-		g.draw(objectTransform.createTransformedShape(fuelBack));
+				g.setColor(new Color(100, 100, 100));
 
-		g.setStroke(strokeOriginal);
+				g.draw(objectTransform.createTransformedShape(fuelBack));
 
-		if(propulsed) {
-			g.setColor(new Color(200, 50, 50));
-		} else {
-			g.setColor(new Color(200, 120, 120));
+				g.setStroke(strokeOriginal);
+
+				if (propulsed) {
+					g.setColor(new Color(200, 50, 50));
+				} else {
+					g.setColor(new Color(200, 120, 120));
+				}
+
+				g.fill(objectTransform.createTransformedShape(fuelFront));
+
+				g.translate(- i * Asteroids.width, - j * Asteroids.height);
+			}
 		}
-
-		g.fill(objectTransform.createTransformedShape(fuelFront));
 
 	}
 
@@ -472,8 +484,8 @@ class AsteroidPlayer {
 	}
 
 	void redistribute(int width, int height) {
-		this.x = x / Asteroids.width * width;
-		this.y = y / Asteroids.height * height;
+		this.x = x / width * Asteroids.width;
+		this.y = y / height * Asteroids.height;
 	}
 
 }

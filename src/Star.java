@@ -22,7 +22,7 @@ public class Star {
     // may remove for performance
     float size;
     int color;
-    AffineTransform starTransform = new AffineTransform();
+    static AffineTransform starTransform = new AffineTransform();
     static Ellipse2D.Float circle = new Ellipse2D.Float(-0.5f, -0.5f, 1, 1);
     public static final float jerk = 0.01f;
 
@@ -36,6 +36,38 @@ public class Star {
     }
 
     public void display(Graphics2D g) {
+        if(x < this.size || x > Asteroids.width - this.size || y < this.size || y > Asteroids.height - this.size) {
+            displayWrapped(g);
+        }
+        show(g);
+    }
+
+    private void displayWrapped(Graphics2D g) {
+        float x = this.x;
+        float y = this.y;
+        if (x < this.size) {
+            this.x = x + Asteroids.width;
+            show(g);
+            this.x = x;
+        }
+        if (x > Asteroids.width - this.size) {
+            this.x = x - Asteroids.width;
+            show(g);
+            this.x = x;
+        }
+        if (y < this.size) {
+            this.y = y + Asteroids.height;
+            show(g);
+            this.y = y;
+        }
+        if (y > Asteroids.height - this.size) {
+            this.y = y - Asteroids.height;
+            show(g);
+            this.y = y;
+        }
+    }
+
+    private void show(Graphics2D g) {
         g.setColor(colors[color]);
         starTransform.setToIdentity();
         starTransform.translate(x, y);
@@ -78,17 +110,19 @@ public class Star {
 
     private void colorDrift() {
         double rand = Math.random();
-        if (rand < 0.1) {
+        if (rand < 0.2) {
             color = Math.min(color + 1, colors.length - 1);
-        } else if (rand > 0.9) {
+        } else if (rand > 0.8) {
             color = Math.max(color - 1, 0);
         }
     }
 
     /**
-     * Randomly redistributes the star's position within the boundaries of the game screen.
+     * Randomly redistributes the star's position within the boundaries of the game
+     * screen.
      * The new position is determined by generating random x and y coordinates
      * within the width and height of the game screen.
+     * 
      * @see Asteroids#redistributeStars()
      */
     public void redistribute() {
@@ -96,10 +130,8 @@ public class Star {
         y = (float) (Math.random() * Asteroids.height);
     }
 
-
-
-    public void redistribute(int width, int height) {
-        x = x / Asteroids.width * width;
-        y = y / Asteroids.height * height;
+    public void redistribute(int oldWidth, int oldHeight) {
+        x = x / oldWidth * Asteroids.width;
+        y = y / oldHeight * Asteroids.height;
     }
 }

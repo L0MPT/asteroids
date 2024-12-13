@@ -33,21 +33,32 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
-	public static int width = 900;
-	public static int height = 500;
+	/**
+	 * The virtual width of the game window in scaled pixels.
+	 */
+	public static int width = 16 * 70;
+	/**
+	 * The virtual height of the game window in scaled pixels.
+	 */
+	public static int height = 9 * 70;
+
+	/**
+	 * The width of the game window in actual pixels.
+	 */
+	public static int trueWidth = width;
+	/**
+	 * The height of the game window in actual pixels.
+	 */
+	public static int trueHeight = height;
+
+	public static double scaleFactor = 1;
 
 	public static boolean fullscreenEnabled = false;
 
 	static boolean[] keys = new boolean[227];
 
-	static int rotation = 50;
-
 	static int x = 100;
 	static int y = 100;
-	static int rectWidth = 15 * 2;
-	static int rectHeight = 20 * 2;
-
-	static double rotV = 0;
 
 	static AsteroidPlayer player1;
 	static AsteroidPlayer player2;
@@ -127,8 +138,6 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		int y1 = r.nextInt(height - 20) + 10;
 		player1 = new AsteroidPlayer(x1,
 				y1,
-				rectWidth,
-				rectHeight,
 				0);
 		int x2 = r.nextInt(width - 20) + 10;
 		int y2 = r.nextInt(height - 20) + 10;
@@ -142,8 +151,6 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 		player2 = new AsteroidPlayer(x2,
 				y2,
-				rectWidth,
-				rectHeight,
 				1);
 	}
 
@@ -162,7 +169,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 			if (keys[32]) {
 				keys[32] = false;
 				respawnPlayers();
-				if(score1 >= 5 || score2 >= 5) {
+				if (score1 >= 5 || score2 >= 5) {
 					score1 = 0;
 					score2 = 0;
 				}
@@ -235,7 +242,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 				p1ScoreIndicator.score = score1;
 				p2ScoreIndicator.score = score2;
 
-				if(score1 >= 5 || score2 >= 5) {
+				if (score1 >= 5 || score2 >= 5) {
 					player1.die();
 					player2.die();
 				}
@@ -278,6 +285,9 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		// apply rumble
 		g2D.translate(r.nextDouble() * getRumble(), r.nextDouble() * getRumble());
 
+		// Global Scale
+		g2D.scale(scaleFactor, scaleFactor);
+
 		g2D.setColor(p2Color);
 
 		// Draw the stars below everything
@@ -295,11 +305,11 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		p2ScoreIndicator.display(g2D);
 
 		// Win screen
-		if(score1 >= 5) {
+		if (score1 >= 5) {
 			g2D.setColor(p1Color);
 			g2D.drawString("Player 1 Wins!", width / 2 - 150, height / 2);
 		}
-		if(score2 >= 5) {
+		if (score2 >= 5) {
 			g2D.setColor(p2Color);
 			g2D.drawString("Player 2 Wins!", width / 2 - 150, height / 2);
 		}
@@ -379,15 +389,15 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	}
 
 	void respawnPlayers() {
-		int x1 = r.nextInt(width - 20) + 10;
-		int y1 = r.nextInt(height - 20) + 10;
+		int x1 = r.nextInt(width);
+		int y1 = r.nextInt(height);
 
-		int x2 = r.nextInt(width - 20) + 10;
-		int y2 = r.nextInt(height - 20) + 10;
+		int x2 = r.nextInt(width);
+		int y2 = r.nextInt(height);
 
-		for (int i = 0; i < 8; i++) {
-			x2 = r.nextInt(width - 20) + 10;
-			y2 = r.nextInt(height - 20) + 10;
+		for (int i = 0; i < 15; i++) {
+			x2 = r.nextInt(width);
+			y2 = r.nextInt(height);
 			if (Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)) > 500) {
 				break;
 			}
