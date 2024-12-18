@@ -31,6 +31,8 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	Random r = new Random();
 
+	private static final String soundPath = "src/resources/sounds/";
+
 	static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
 	/**
@@ -242,7 +244,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 				p1ScoreIndicator.score = score1;
 				p2ScoreIndicator.score = score2;
 
-				if (score1 >= 5 || score2 >= 5) {
+				if (score1 >= 5 || score2 >= 5 && (player1.alive || player2.alive)) {
 					player1.die();
 					player2.die();
 				}
@@ -324,23 +326,23 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	// Audio
 	public static void playThrust() {
-		SoundPlayer.playSound("sounds/thrust4.wav", true);
+		SoundPlayer.playSound(soundPath + "thrust4.wav", true);
 	}
 
 	public static void playShoot() {
-		SoundPlayer.playSound("sounds/laserShoot.wav");
+		SoundPlayer.playSound(soundPath + "laserShoot.wav");
 	}
 
 	public static void playExplode() {
-		SoundPlayer.playSound("sounds/explosion.wav");
+		SoundPlayer.playSound(soundPath + "explosion.wav");
 	}
 
 	public static void preloadSounds() {
 		for (int i = 0; i < 6; i++) {
-			SoundPlayer.loadStoppedSound("sounds/thrust4.wav");
+			SoundPlayer.loadStoppedSound(soundPath + "thrust4.wav");
 		}
-		SoundPlayer.loadStoppedSound("sounds/laserShoot.wav");
-		SoundPlayer.loadStoppedSound("sounds/explosion.wav");
+		SoundPlayer.loadStoppedSound(soundPath + "laserShoot.wav");
+		SoundPlayer.loadStoppedSound(soundPath + "explosion.wav");
 	}
 
 	public static void createStars() {
