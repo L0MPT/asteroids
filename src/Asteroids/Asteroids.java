@@ -1,3 +1,5 @@
+package Asteroids;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -80,6 +82,9 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	static Star[] stars = new Star[150];
 
+	UpgradeScreen upgradeScreen = new UpgradeScreen();
+	boolean upgradeShow = false;
+
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -159,102 +164,14 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	private void gameLoop() {
 		while (true) {
 
-			// game close:
-
-			if (keys[27]) {
-				keys[27] = false;
-				System.exit(0);
-			}
-
-			// restarting
-
-			if (keys[32]) {
-				keys[32] = false;
-				respawnPlayers();
-				if (score1 >= 5 || score2 >= 5) {
-					score1 = 0;
-					score2 = 0;
-				}
-			}
-
-			// fullscreen f11
-			if (keys[122]) {
-				keys[122] = false;
-				if (fullscreenEnabled) {
-					fullscreenEnabled = false;
-					enterWindowMode();
-				} else {
-					fullscreenEnabled = true;
-					enterFullscreenMode();
-				}
-			}
-
-			// mute m
-			if (keys[77]) {
-				keys[77] = false;
-				SoundPlayer.muteToggle();
-				System.out.println("Mute toggled");
-			}
+			specialControls();
 
 			long currentFrameTime = System.nanoTime();
 			deltaTime = (currentFrameTime - pastTime) / 1000000;
 
 			if (deltaTime >= targetDelay) {
-				// Update and render game here
 
-				// reduces rumble
-
-				if (getRumble() < 0.01) {
-					setRumble(0);
-				}
-
-				if (timeSincePlay < 0) {
-					playThrust();
-					timeSincePlay = 50;
-				}
-				timeSincePlay -= Asteroids.deltaTime;
-
-				setRumble(getRumble() * 0.8);
-
-				player1.move();
-				player2.move();
-				for (int i = 0; i < player1.bullets.length; i++) {
-					Bullet bullet = player1.bullets[i];
-					if (bullet == null || !player2.alive) {
-						continue;
-					} // stops if null
-					if (bullet.collide(player2.boundsRect)) {
-						player2.die();
-						player1.bullets[i] = null;
-						score1++;
-					}
-				}
-				for (int i = 0; i < player2.bullets.length; i++) {
-					Bullet bullet = player2.bullets[i];
-					if (bullet == null || !player1.alive) {
-						continue;
-					} // stops if null
-					if (bullet.collide(player1.boundsRect)) {
-						player1.die();
-						player2.bullets[i] = null;
-						score2++;
-					}
-				}
-
-				p1ScoreIndicator.score = score1;
-				p2ScoreIndicator.score = score2;
-
-				if (score1 >= 5 || score2 >= 5 && (player1.alive || player2.alive)) {
-					player1.die();
-					player2.die();
-				}
-
-				for (Star s : stars) {
-					if (s == null) {
-						continue;
-					}
-					s.move();
-				}
+				tick();
 
 				SwingUtilities.invokeLater(this::repaint); // multithreading or something
 
@@ -267,6 +184,119 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+
+	private void specialControls() {
+		// game close:
+
+		if (keys[27]) {
+			keys[27] = false;
+			System.exit(0);
+		}
+
+		// restarting
+
+		if (keys[32]) {
+			keys[32] = false;
+
+			if (score1 >= 5 || score2 >= 5) {
+				score1 = 0;
+				score2 = 0;
+				respawnPlayers();
+			} else {
+
+				if (!upgradeShow) {
+					upgradeShow = true;
+					upgradeScreen.initialize();
+				} else {
+					upgradeShow = false;
+					respawnPlayers();
+				}
+
+			}
+
+		}
+
+		// fullscreen f11
+		if (keys[122]) {
+			keys[122] = false;
+			if (fullscreenEnabled) {
+				fullscreenEnabled = false;
+				enterWindowMode();
+			} else {
+				fullscreenEnabled = true;
+				enterFullscreenMode();
+			}
+		}
+
+		// mute m
+		if (keys[77]) {
+			keys[77] = false;
+			SoundPlayer.muteToggle();
+			System.out.println("Mute toggled");
+		}
+	}
+
+	private void tick() {
+		// reduces rumble
+
+		if (upgradeShow) {
+			setRumble(0);
+			return;
+		}
+
+		if (getRumble() < 0.01) {
+			setRumble(0);
+		}
+
+		if (timeSincePlay < 0) {
+			playThrust();
+			timeSincePlay = 50;
+		}
+		timeSincePlay -= Asteroids.deltaTime;
+
+		// TODO: Make rumble spring and force based
+		setRumble(getRumble() * 0.8);
+
+		player1.move();
+		player2.move();
+		for (int i = 0; i < player1.bullets.size(); i++) {
+			Bullet bullet = player1.bullets.get(i);
+			if (bullet == null || !player2.alive) {
+				continue;
+			} // stops if null
+			if (bullet.collide(player2.boundsRect)) {
+				player2.die();
+				player1.bullets.set(i, null);
+				score1++;
+			}
+		}
+		for (int i = 0; i < player2.bullets.size(); i++) {
+			Bullet bullet = player2.bullets.get(i);
+			if (bullet == null || !player1.alive) {
+				continue;
+			} // stops if null
+			if (bullet.collide(player1.boundsRect)) {
+				player1.die();
+				player2.bullets.set(i, null);
+				score2++;
+			}
+		}
+
+		p1ScoreIndicator.score = score1;
+		p2ScoreIndicator.score = score2;
+
+		if (score1 >= 5 || score2 >= 5 && (player1.alive || player2.alive)) {
+			player1.die();
+			player2.die();
+		}
+
+		for (Star s : stars) {
+			if (s == null) {
+				continue;
+			}
+			s.move();
 		}
 	}
 
@@ -290,7 +320,15 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		// Global Scale
 		g2D.scale(scaleFactor, scaleFactor);
 
-		g2D.setColor(p2Color);
+		if (upgradeShow) {
+			upgradeScreen.display(g2D);
+
+			p1ScoreIndicator.display(g2D);
+			p2ScoreIndicator.display(g2D);
+			
+			Toolkit.getDefaultToolkit().sync();
+			return;
+		}
 
 		// Draw the stars below everything
 		for (Star s : stars) {

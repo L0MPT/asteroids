@@ -1,3 +1,5 @@
+package Asteroids;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -5,13 +7,15 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.Shape;
 
-class Bullet {
+public class Bullet {
 	double x;
 	double y;
 	int width;
 	int height;
 	double velocity;
 	double rotation;
+
+	double damage = 100;
 
 	Shape bulletShape;
 
@@ -127,5 +131,13 @@ class Bullet {
 		if (bulletShape == null)
 			return false;
 		return shape.intersects(bulletShape.getBounds2D());
+	}
+
+	// Getters and Setters
+	public double getDamage() {
+		return damage;
+	}
+	public void setDamage(double damage) {
+		this.damage = damage;
 	}
 }

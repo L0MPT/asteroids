@@ -1,3 +1,5 @@
+package Asteroids;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -9,7 +11,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Random;
 
-class AsteroidPlayer {
+public class AsteroidPlayer {
 	int width = 30;
 	int height = 40;
 	double x;
@@ -17,15 +19,26 @@ class AsteroidPlayer {
 
 	int type;
 
+	public boolean show = true;
+
 	final int ammoSize = 7;
 	int ammoMax = 3;
 	int ammo = ammoMax;
+
+	double health = 100;
+	double healthMax = 100;
+	int bulletCooldown = 1000;
+
+	int fireCooldown = 0;
+	// allows autofire while stopping accidental muliti-shots
+	int fireCooldownMax = 250;
 
 	Random rand = new Random();
 
 	double xv = 0;
 	double yv = 0;
 	private double speed = 0.2;
+
 	double rotation;
 	double rotV;
 
@@ -40,7 +53,7 @@ class AsteroidPlayer {
 
 	boolean alive = true;
 
-	Bullet[] bullets = new Bullet[ammo];
+	ArrayList<Bullet> bullets = new ArrayList<Bullet>(ammoMax);
 
 	ShipParticle[] particles = new ShipParticle[200];
 
@@ -60,6 +73,8 @@ class AsteroidPlayer {
 
 	static BasicStroke stroke = new BasicStroke(1.0f);
 	static Color strokeColor = new Color(20, 20, 20);
+
+	UpgradeApply upgrades = new UpgradeApply();
 
 	AsteroidPlayer(int x, double y, int i) {
 		this.x = x;
@@ -104,9 +119,11 @@ class AsteroidPlayer {
 		this.alive = true;
 		this.fuel = fuelMax;
 		this.ammo = ammoMax;
+		this.fireCooldown = 0;
 		this.xv = 0;
 		this.yv = 0;
 		this.rotV = 0;
+		this.health = healthMax;
 		for (int i = 0; i < particles.length; i++) {
 			particles[i] = null;
 		}
@@ -116,12 +133,16 @@ class AsteroidPlayer {
 		for (int i = 0; i < shipShootParticle.length; i++) {
 			shipShootParticle[i] = null;
 		}
-		for (int i = 0; i < bullets.length; i++) {
-			bullets[i] = null;
+		for (int i = 0; i < bullets.size(); i++) {
+			bullets.set(i, null);
 		}
 	}
 
 	public void display(Graphics2D g) {
+
+		if(!show) {
+			return;
+		}
 
 		if (!alive) {
 			// draws particles
@@ -131,7 +152,7 @@ class AsteroidPlayer {
 				}
 			}
 			return;
-		}
+		}		
 
 		// sets color:
 		// double fuelPercent = (fuel / fuelMax);
@@ -175,9 +196,9 @@ class AsteroidPlayer {
 		drawAmmo(g);
 
 		// draws bullets
-		for (int i = 0; i < bullets.length; i++) {
-			if (bullets[i] != null) {
-				bullets[i].display(g);
+		for (int i = 0; i < bullets.size(); i++) {
+			if (bullets.get(i) != null) {
+				bullets.get(i).display(g);
 			}
 		}
 
@@ -335,15 +356,18 @@ class AsteroidPlayer {
 
 		Asteroids.playShoot();
 
-		timeToNewBullet = 3000;
+		timeToNewBullet = bulletCooldown;
 
 		int bulletWidth = 15;
 
 		// Could adjust such that it shoots from the tip of the triangle
-		double bX = this.x - ((this.height * Math.cos((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
-		double bY = this.y - ((this.height * Math.sin((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
+		double bX = x - ((this.height * Math.cos((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
+		double bY = y - ((this.height * Math.sin((rotation - 90) * Math.PI / 180)) * 2.0 / 3.0);
 
-		bullets[ammoMax - ammo] = new Bullet(bX, bY, 20, bulletWidth, this.rotation + 90);
+		bullets.add(ammoMax - ammo, new Bullet(bX, bY, 20, bulletWidth, rotation + 90));
+
+		upgrades.applyShoot(bullets.get(ammoMax - ammo));
+
 		ammo -= 1;
 		int spawned = 0;
 		for (int i = 0; i < shipShootParticle.length; i++) {
@@ -392,9 +416,16 @@ class AsteroidPlayer {
 
 		timeToNewBullet -= Asteroids.deltaTime;
 		if (timeToNewBullet <= 0 && ammo < ammoMax) {
-			timeToNewBullet = 3000;
+			timeToNewBullet = bulletCooldown;
 			ammo += 1;
 		}
+
+		bullets.removeIf(nullBullet -> nullBullet == null);
+		bullets.forEach((bullet) -> {
+			if (bullet.x < 0 || bullet.x > Asteroids.width || bullet.y < 0 || bullet.y > Asteroids.height) {
+				bullet = null;
+			}
+		});
 
 		x = (x + Asteroids.width) % Asteroids.width;
 		y = (y + Asteroids.height) % Asteroids.height;
@@ -415,10 +446,10 @@ class AsteroidPlayer {
 		switch (type) {
 			// Down Arrow
 			case (0): {
-				if (Asteroids.keys[40] && ammo > 0) {
+				if (Asteroids.keys[40] && ammo > 0 && fireCooldown <= 0) {
 					// Could adjust such that it shoots from the tip of the triangle
 					shoot();
-					Asteroids.keys[40] = false;
+					fireCooldown = fireCooldownMax;
 				}
 
 				if (Asteroids.keys[38] && fuel > 0 && propulsed) {
@@ -438,10 +469,10 @@ class AsteroidPlayer {
 				break;
 			}
 			case (1): {
-				if (Asteroids.keys[83] && ammo > 0) {
+				if (Asteroids.keys[83] && ammo > 0 && fireCooldown <= 0) {
 					// Could adjust such that it shoots from the tip of the triangle
 					shoot();
-					Asteroids.keys[83] = false;
+					fireCooldown = fireCooldownMax;
 				}
 
 				if (Asteroids.keys[87] && fuel > 0 && propulsed) {
@@ -468,11 +499,14 @@ class AsteroidPlayer {
 		xv *= 0.99;
 		yv *= 0.99;
 
-		for (int i = 0; i < bullets.length; i++) {
-			if (bullets[i] != null) {
-				bullets[i].move();
+		for (int i = 0; i < bullets.size(); i++) {
+			if (bullets.get(i) != null) {
+				bullets.get(i).move();
 			}
 		}
+
+		fireCooldown -= Asteroids.deltaTime;
+		fireCooldown = Math.max(fireCooldown, 0);
 
 		fuel = Math.min(fuel + Asteroids.deltaTime / 2, fuelMax);
 		fuel = Math.max(fuel, 0);
@@ -487,5 +521,88 @@ class AsteroidPlayer {
 		this.x = x / width * Asteroids.width;
 		this.y = y / height * Asteroids.height;
 	}
+	public int getWidth() {
+		return width;
+	}
+	public void setWidth(int width) {
+		this.width = width;
+	}
+	public int getHeight() {
+		return height;
+	}
+	public void setHeight(int height) {
+		this.height = height;
+	}
 
+	public int getAmmoMax() {
+		return ammoMax;
+	}
+
+	public void setAmmoMax(int ammoMax) {
+		this.ammoMax = ammoMax;
+	}
+
+	public double getHealthMax() {
+		return healthMax;
+	}
+
+	public void setHealthMax(double healthMax) {
+		this.healthMax = healthMax;
+	}
+
+	public int getBulletCooldown() {
+		return bulletCooldown;
+	}
+
+	public void setBulletCooldown(int bulletCooldown) {
+		this.bulletCooldown = bulletCooldown;
+	}
+
+	public int getFireCooldownMax() {
+		return fireCooldownMax;
+	}
+
+	public void setFireCooldownMax(int fireCooldownMax) {
+		this.fireCooldownMax = fireCooldownMax;
+	}
+
+	public double getSpeed() {
+		return speed;
+	}
+
+	public void setSpeed(double speed) {
+		this.speed = speed;
+	}
+
+	public double getRotSpeed() {
+		return rotSpeed;
+	}
+
+	public void setRotSpeed(double rotSpeed) {
+		this.rotSpeed = rotSpeed;
+	}
+
+	public double getRotDecel() {
+		return rotDecel;
+	}
+
+	public void setRotDecel(double rotDecel) {
+		this.rotDecel = rotDecel;
+	}
+
+	public double getTimeToNewBullet() {
+		return timeToNewBullet;
+	}
+
+	public void setTimeToNewBullet(double timeToNewBullet) {
+		this.timeToNewBullet = timeToNewBullet;
+	}
+
+	public double getFuelMax() {
+		return fuelMax;
+	}
+
+	public void setFuelMax(double fuelMax) {
+		this.fuelMax = fuelMax;
+	}
 }
