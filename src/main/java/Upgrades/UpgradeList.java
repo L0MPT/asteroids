@@ -8,7 +8,7 @@ import java.io.FileReader;
 public class UpgradeList {
     Map<String, Integer> upgrades = new HashMap<>();
 
-    String filename = "src/resources/upgrades.txt";
+    String filename = "src/main/resources/upgrades.txt";
 
     public UpgradeList() {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {

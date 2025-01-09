@@ -33,7 +33,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	Random r = new Random();
 
-	private static final String soundPath = "src/resources/sounds/";
+	private static final String soundPath = "src/main/resources/sounds/";
 
 	static Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
@@ -84,6 +84,8 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 	UpgradeScreen upgradeScreen = new UpgradeScreen();
 	boolean upgradeShow = false;
+
+	InputHandler inputHandler = new InputHandler();
 
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
@@ -190,15 +192,13 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 	private void specialControls() {
 		// game close:
 
-		if (keys[27]) {
-			keys[27] = false;
+		if (InputHandler.onceBind("exit")) {
 			System.exit(0);
 		}
 
 		// restarting
 
-		if (keys[32]) {
-			keys[32] = false;
+		if (InputHandler.onceBind("respawn")) {
 
 			if (score1 >= 5 || score2 >= 5) {
 				score1 = 0;
@@ -219,8 +219,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		}
 
 		// fullscreen f11
-		if (keys[122]) {
-			keys[122] = false;
+		if (InputHandler.onceBind("fullscreen")) {
 			if (fullscreenEnabled) {
 				fullscreenEnabled = false;
 				enterWindowMode();
@@ -231,8 +230,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 		}
 
 		// mute m
-		if (keys[77]) {
-			keys[77] = false;
+		if (InputHandler.onceBind("mute")) {
 			SoundPlayer.muteToggle();
 			System.out.println("Mute toggled");
 		}
@@ -325,7 +323,7 @@ public class Asteroids extends JPanel implements KeyListener, MouseListener, Mou
 
 			p1ScoreIndicator.display(g2D);
 			p2ScoreIndicator.display(g2D);
-			
+
 			Toolkit.getDefaultToolkit().sync();
 			return;
 		}

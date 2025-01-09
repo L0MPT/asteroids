@@ -1,7 +1,6 @@
 package Asteroids;
-import java.util.ArrayList;
-
 import Upgrades.Upgrade;
+import java.util.ArrayList;
 
 /**
  * The UpgradeApply class manages a list of upgrades and applies their effects

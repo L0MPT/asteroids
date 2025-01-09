@@ -2,16 +2,7 @@ package Asteroids;
 
 import Upgrades.Upgrade;
 import Upgrades.UpgradeList;
-
-import Upgrades.*;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class SelectUpgrade {
     UpgradeList upgradeList = new UpgradeList();
